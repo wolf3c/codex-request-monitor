@@ -10,16 +10,26 @@ This local, read-only diagnostic dashboard shows which Codex conversation used H
 
 ## 安装 / Install
 
-首发为 macOS 测试版。需要本机 Codex 桌面版、可用的 Python 3.9+，以及支持 `codex plugin` 命令的 Codex CLI。本项目此前在内置 `codex-cli 0.166.0-alpha.6` 的桌面环境开发，其他版本及操作系统需要单独验证。
+首发为 macOS 测试版。需要本机 Codex 桌面版和 Python 3.9+。终端安装另需支持 `codex plugin` 命令的 Codex CLI。本项目此前在内置 `codex-cli 0.166.0-alpha.6` 的桌面环境开发，其他版本及操作系统需要单独验证。
 
-在终端运行 / In a terminal:
+### 1. 终端安装（推荐） / Terminal (recommended)
 
 ```sh
 codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.1.0-beta
 codex plugin add codex-request-monitor@codex-request-monitor-marketplace
 ```
 
-打开 Codex 桌面版，在最左侧「⋯」里找到「Codex 请求监控」，可用图钉固定。首次安装后如果没有出现入口，等当前任务结束后重新打开桌面应用。也可以克隆本仓库，从本机目录运行同一个面板：
+### 2. 桌面界面安装 / Desktop UI
+
+1. 在 Codex 桌面版打开「插件」（**Plugins**），选择 **Add plugin marketplace**（添加插件市场）。
+2. 在 **Source** 填入 `wolf3c/codex-request-monitor`，在 **Git ref** 填入 `v0.1.0-beta`，点击 **Add marketplace**。
+3. 在新添加的市场里找到「Codex 请求监控」，点击 **Install**（安装）。
+
+In Codex desktop, open **Plugins → Add plugin marketplace**. Enter `wolf3c/codex-request-monitor` as **Source** and `v0.1.0-beta` as **Git ref**. Click **Add marketplace**, then **Install** on the Codex Request Monitor listing.
+
+安装后，在 Codex 桌面版最左侧「⋯」里找到「Codex 请求监控」，可用图钉固定。首次安装后如果没有出现入口，等当前任务结束后重新打开桌面应用。
+
+也可以克隆本仓库，从本机目录运行同一个面板：
 
 ```sh
 python3 plugins/codex-request-monitor/monitor.py

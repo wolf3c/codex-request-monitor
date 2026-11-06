@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "codex-request-monitor",
+  "version": "0.1.0-beta",
+  "description": "在 Codex 应用栏中打开本机只读请求监控。",
+  "extensions": {
+    "com.openai": {
+      "requires_local_executor": true,
+      "interface": {
+        "displayName": "Codex 请求监控",
+        "shortDescription": "查看本机 Codex 请求大小和传输方式",
+        "category": "Productivity"
+      }
+    }
+  },
+  "repository": "https://github.com/wolf3c/codex-request-monitor",
+  "author": {
+    "name": "wolf3c"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "codex-request-monitor-marketplace",
+  "interface": {"displayName": "Codex Request Monitor"},
+  "plugins": [
+    {
+      "name": "codex-request-monitor",
+      "source": {"source": "local", "path": "./plugins/codex-request-monitor"},
+      "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+      "category": "Productivity"
+    }
+  ]
+}

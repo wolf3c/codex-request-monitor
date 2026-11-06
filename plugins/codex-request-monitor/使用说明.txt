@@ -1,0 +1,5 @@
+安装与使用说明：https://github.com/wolf3c/codex-request-monitor#安装--install
+
+双击「启动监控.command」可打开本机浏览器版；按 Control-C 停止。
+
+浏览器与桌面面板只展示本机日志能证明的数据。WebSocket 大小和下载量缺少记录时显示 -。

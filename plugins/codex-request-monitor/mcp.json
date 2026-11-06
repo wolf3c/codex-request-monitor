@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "request_monitor": {
+      "type": "stdio",
+      "command": "python3",
+      "args": ["-B", "${PLUGIN_ROOT}/sidebar_mcp.py"],
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}

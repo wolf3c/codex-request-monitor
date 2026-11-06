@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="464" viewBox="0 0 960 464" xml:lang="en" role="img" aria-labelledby="title desc">
+<title id="title">See how Codex sends requests</title><desc id="desc">Find large requests and non-incremental events by session when uploads slow down.</desc>
+<rect x="0.5" y="0.5" width="959" height="463" rx="18" fill="#fbf7f0" stroke="#ded6ca"/>
+<g font-family="system-ui, PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif">
+<rect x="32" y="27" width="28" height="28" rx="7" fill="#e0ede6"/>
+<path d="M37 41h4l3-6 4 12 3-6h4" fill="none" stroke="#24644e" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="70" y="48" font-size="18" font-weight="650" fill="#365a4d">Codex Request Monitor</text>
+<rect x="753" y="25" width="175" height="32" rx="16" fill="#e0ede6"/>
+<circle cx="773" cy="41" r="4" fill="#277858"/>
+<text x="785" y="46" font-size="14" font-weight="650" fill="#265c49">LOCAL · READ-ONLY</text>
+<text x="32" y="102" font-size="40" font-weight="750" fill="#192230">See how Codex sends requests</text>
+<text x="34" y="135" font-size="19" font-weight="400" fill="#55504a">Find large requests and non-incremental events by session when uploads slow down.</text>
+<rect x="32" y="162" width="288" height="94" rx="10" fill="#fffdfa" stroke="#ded6ca"/>
+<text x="47" y="188" font-size="13" font-weight="750" fill="#365a4d">01</text>
+<text x="47" y="214" font-size="18" font-weight="700" fill="#192230">See the transport</text>
+<text x="47" y="238" font-size="15" font-weight="400" fill="#55504a">HTTP or WebSocket by session</text>
+<rect x="336" y="162" width="288" height="94" rx="10" fill="#fffdfa" stroke="#ded6ca"/>
+<text x="351" y="188" font-size="13" font-weight="750" fill="#365a4d">02</text>
+<text x="351" y="214" font-size="18" font-weight="700" fill="#192230">Spot large HTTP requests</text>
+<text x="351" y="238" font-size="15" font-weight="400" fill="#55504a">See compressed request body sizes</text>
+<rect x="640" y="162" width="288" height="94" rx="10" fill="#fffdfa" stroke="#ded6ca"/>
+<text x="655" y="188" font-size="13" font-weight="750" fill="#365a4d">03</text>
+<text x="655" y="214" font-size="18" font-weight="700" fill="#192230">Find non-incremental events</text>
+<text x="655" y="238" font-size="15" font-weight="400" fill="#55504a">Only when explicitly logged</text>
+<text x="33" y="285" font-size="15" font-weight="650" fill="#55504a">Sessions · Synthetic data</text>
+<rect x="32" y="297" width="896" height="129" rx="10" fill="#fffdfa" stroke="#ded6ca"/>
+<path d="M42 298H918a9 9 0 0 1 9 9v20H33v-20a9 9 0 0 1 9-9Z" fill="#f2ebe1"/>
+<path d="M33 327h894M33 360h894M33 393h894" fill="none" stroke="#e7ddd0"/>
+<text x="48" y="318" font-size="14" font-weight="700" fill="#192230">Session</text>
+<text x="328" y="318" font-size="14" font-weight="700" fill="#192230">Transport</text>
+<text x="484" y="318" font-size="14" font-weight="700" fill="#192230">Latest request body</text>
+<text x="676" y="318" font-size="14" font-weight="700" fill="#192230">Log status</text>
+<text x="48" y="349" font-size="15" font-weight="500" fill="#192230">Fix page rendering</text>
+<text x="328" y="349" font-size="15" font-weight="500" fill="#192230">HTTP</text>
+<text x="484" y="349" font-size="15" font-weight="700" fill="#9b3b0b">22.90 MiB</text>
+<text x="676" y="349" font-size="15" font-weight="700" fill="#9b3b0b">Over the 10 MiB threshold</text>
+<text x="48" y="382" font-size="15" font-weight="500" fill="#192230">Review screenshot history</text>
+<text x="328" y="382" font-size="15" font-weight="500" fill="#192230">WebSocket</text>
+<text x="484" y="382" font-size="15" font-weight="500" fill="#192230">—</text>
+<text x="676" y="382" font-size="15" font-weight="700" fill="#9b3b0b">Non-incremental logged</text>
+<text x="48" y="415" font-size="15" font-weight="500" fill="#192230">Prepare release notes</text>
+<text x="328" y="415" font-size="15" font-weight="500" fill="#192230">WebSocket</text>
+<text x="484" y="415" font-size="15" font-weight="500" fill="#192230">—</text>
+<text x="676" y="415" font-size="15" font-weight="500" fill="#192230">Incremental status unknown</text>
+<text x="33" y="449" font-size="14" font-weight="400" fill="#55504a">A dash means size was unavailable. Monitoring data stays on your device.</text>
+</g></svg>

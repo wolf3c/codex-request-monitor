@@ -22,7 +22,7 @@ h1 { margin: 0; font-size: clamp(24px, 3vw, 34px); letter-spacing: -.035em; }
 .sub { margin: 5px 0 0; color: var(--muted); }
 .tools, .filters { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
 label { display: flex; align-items: center; gap: 8px; font-weight: 600; }
-input, button { font: inherit; color: inherit; border: 1px solid var(--line); border-radius: 7px; background: #fffaf4; min-height: 32px; padding: 4px 10px; }
+input, button, select { font: inherit; color: inherit; border: 1px solid var(--line); border-radius: 7px; background: #fffaf4; min-height: 32px; padding: 4px 10px; }
 input { width: 78px; font-variant-numeric: tabular-nums; }
 button { cursor: pointer; font-weight: 600; }
 button:hover { background: #f2e7d9; }
@@ -80,58 +80,184 @@ tr:last-child td { border-bottom: 0; }
 <body>
 <main class="wrap">
   <header>
-    <div><h1>Codex 请求监控</h1><p class="sub">本机只读 · 最近 24 小时</p></div>
+    <div><h1 data-i18n>Codex 请求监控</h1><p class="sub" data-i18n>本机只读 · 最近 24 小时</p></div>
     <div class="tools">
-      <label>大请求阈值 <input id="threshold" type="number" min="0.01" max="100000" step="any" value="10"> MiB</label>
-      <button id="notify" type="button">启用系统通知</button>
-      <span class="page-alerts" id="pageAlerts" hidden>页面内告警</span>
+      <label><span data-i18n>语言</span>
+        <select id="language"><option value="zh-CN">简体中文</option><option value="en">English</option></select>
+      </label>
+      <label><span data-i18n>大请求阈值</span> <input id="threshold" type="number" min="0.01" max="100000" step="any" value="10"> MiB</label>
+      <button id="notify" type="button" data-i18n>启用系统通知</button>
+      <span class="page-alerts" id="pageAlerts" hidden data-i18n>页面内告警</span>
     </div>
   </header>
-  <section class="summary" id="overview" aria-label="监控概况">
+  <section class="summary" id="overview" data-i18n-label aria-label="监控概况">
     <div class="summary-main">
       <div role="status">
-        <h2 id="overviewTitle">正在读取近 5 分钟的请求</h2>
+        <h2 id="overviewTitle" data-i18n>正在读取近 5 分钟的请求</h2>
         <p id="overviewDetail" hidden></p>
       </div>
-      <button id="filterAlerts" type="button" aria-controls="rows" aria-pressed="false" hidden>只看提醒会话</button>
+      <button id="filterAlerts" type="button" aria-controls="rows" aria-pressed="false" hidden data-i18n>只看提醒会话</button>
     </div>
     <div class="summary-meta">
-      <span>最后更新 <span id="updated">—</span></span>
+      <span><span data-i18n>最后更新</span> <span id="updated">—</span></span>
       <details>
-        <summary>最近 24 小时统计</summary>
-        <div class="summary-history"><span id="count">—</span> 个会话 · <span id="large">—</span> 条 HTTP 大请求 · <span id="wsfull">—</span> 条 WS 非增量事件</div>
+        <summary data-i18n>最近 24 小时统计</summary>
+        <div class="summary-history"><span id="count">—</span> <span data-i18n>个会话</span> · <span id="large">—</span> <span data-i18n>条 HTTP 大请求</span> · <span id="wsfull">—</span> <span data-i18n>条 WS 非增量事件</span></div>
       </details>
     </div>
   </section>
   <div class="title">
-    <h2>会话记录</h2>
-    <div class="filters" role="group" aria-label="会话筛选">
-      <button id="filterChats" type="button" aria-pressed="true">我的聊天</button>
-      <button id="filterOther" type="button" aria-pressed="false">其他 / 未匹配</button>
+    <h2 data-i18n>会话记录</h2>
+    <div class="filters" role="group" data-i18n-label aria-label="会话筛选">
+      <button id="filterChats" type="button" aria-pressed="true" data-i18n>我的聊天</button>
+      <button id="filterOther" type="button" aria-pressed="false" data-i18n>其他 / 未匹配</button>
     </div>
   </div>
   <div class="tablewrap">
     <table>
-      <thead><tr><th>会话</th><th>最近观察</th><th>传输</th><th>最近请求体</th><th>大小状态</th></tr></thead>
-      <tbody id="rows"><tr><td colspan="5" class="empty">正在读取日志…</td></tr></tbody>
+      <thead><tr><th data-i18n>会话</th><th data-i18n>最近观察</th><th data-i18n>传输</th><th data-i18n>最近请求体</th><th data-i18n>大小状态</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="5" class="empty" data-i18n>正在读取日志…</td></tr></tbody>
     </table>
   </div>
-  <p class="foot"><span class="live"><span class="dot" id="dot"></span><span id="live">正在连接</span></span> · 每 5 秒更新 · 按最近观察时间排序<br>
-  阈值按压缩后大小计算。最近一次请求缺少可匹配的大小记录时显示 -。展开会话可查看历史 HTTP 大小。</p>
+  <p class="foot"><span class="live"><span class="dot" id="dot"></span><span id="live" data-i18n>正在连接</span></span> · <span data-i18n>每 5 秒更新 · 按最近观察时间排序</span><br>
+  <span data-i18n>阈值按压缩后大小计算。最近一次请求缺少可匹配的大小记录时显示 -。展开会话可查看历史 HTTP 大小。</span></p>
 </main>
 <dialog id="retryGuide" class="retry-dialog" aria-labelledby="retryGuideTitle">
-  <h2 id="retryGuideTitle">手动重试 WebSocket</h2>
+  <h2 id="retryGuideTitle" data-i18n>手动重试 WebSocket</h2>
   <p id="retryGuideThread"></p>
-  <p><strong>归档可能中断这个会话和它的子任务。</strong>被中断的任务不会在重新打开后自动继续。</p>
+  <p><strong data-i18n>归档可能中断这个会话和它的子任务。</strong> <span data-i18n>被中断的任务不会在重新打开后自动继续。</span></p>
   <ol>
-    <li>在 Codex 中归档这个会话。</li>
-    <li>从归档列表取消归档，再打开原会话。</li>
-    <li>发一条消息，然后回到监控面板查看结果。</li>
+    <li data-i18n>在 Codex 中归档这个会话。</li>
+    <li data-i18n>从归档列表取消归档，再打开原会话。</li>
+    <li data-i18n>发一条消息，然后回到监控面板查看结果。</li>
   </ol>
-  <form method="dialog"><button autofocus>我知道了</button></form>
+  <form method="dialog"><button autofocus data-i18n>我知道了</button></form>
 </dialog>
 <script>
 const $=id=>document.getElementById(id), threshold=$('threshold');
+const english = {
+  "Codex 请求监控": "Codex Request Monitor",
+  "本机只读 · 最近 24 小时": "Local, read-only · Last 24 hours",
+  "大请求阈值": "Large request threshold",
+  "启用系统通知": "Enable system notifications",
+  "页面内告警": "In-page alerts",
+  "监控概况": "Monitor overview",
+  "正在读取近 5 分钟的请求": "Loading requests from the last 5 minutes",
+  "只看提醒会话": "Show chats with alerts",
+  "最后更新": "Last updated",
+  "最近 24 小时统计": "Last 24 hours",
+  "个会话": "sessions",
+  "条 HTTP 大请求": "large HTTP requests",
+  "条 WS 非增量事件": "non-incremental WS events",
+  "会话记录": "Sessions",
+  "会话筛选": "Session filters",
+  "我的聊天": "My chats",
+  "其他 / 未匹配": "Other / unmatched",
+  "会话": "Session",
+  "最近观察": "Last seen",
+  "传输": "Transport",
+  "最近请求体": "Latest request body",
+  "大小状态": "Size status",
+  "正在读取日志…": "Loading logs…",
+  "正在连接": "Connecting",
+  "每 5 秒更新 · 按最近观察时间排序": "Refreshes every 5 seconds · Sorted by last seen",
+  "阈值按压缩后大小计算。最近一次请求缺少可匹配的大小记录时显示 -。展开会话可查看历史 HTTP 大小。": "The threshold uses compressed size. A dash means no size is available for the latest request. Expand a session for past HTTP sizes.",
+  "手动重试 WebSocket": "Retry WebSocket manually",
+  "归档可能中断这个会话和它的子任务。": "Archiving may interrupt this session and its subtasks.",
+  "被中断的任务不会在重新打开后自动继续。": "Interrupted tasks do not resume automatically.",
+  "在 Codex 中归档这个会话。": "Archive this session in Codex.",
+  "从归档列表取消归档，再打开原会话。": "Unarchive it, then reopen the original session.",
+  "发一条消息，然后回到监控面板查看结果。": "Send a message, then return to the monitor to check the result.",
+  "我知道了": "Got it",
+  "语言": "Language",
+  "连接关闭": "Connection closed",
+  "恢复历史": "History restored",
+  "无上一请求": "No previous request",
+  "无可用上一响应": "No usable previous response",
+  "无上一响应 ID": "No previous response ID",
+  "输入不匹配": "Input mismatch",
+  "输入变短": "Input shortened",
+  "模型变化": "Model changed",
+  "推理设置变化": "Reasoning settings changed",
+  "工具变化": "Tools changed",
+  "输出设置变化": "Output settings changed",
+  "服务等级变化": "Service tier changed",
+  "时间": "Time",
+  "上传": "Upload",
+  "下载": "Download",
+  "WebSocket 非增量": "Non-incremental WebSocket",
+  "未知": "Unknown",
+  "等待新请求": "Waiting for a new request",
+  "完整上下文（HTTP）": "Full context (HTTP)",
+  "增量状态未知": "Incremental status unknown",
+  "最近非增量": "Recent non-incremental request",
+  "内部线程 · ": "Internal thread · ",
+  "来源未确认 · ": "Unconfirmed source · ",
+  "来源未确认": "Unconfirmed source",
+  "未命名聊天": "Untitled chat",
+  " · 压缩后": " · Compressed",
+  "最近记录过大": "Over threshold",
+  "最近记录未超限": "Within threshold",
+  "已观察到归档，等待重新打开后发消息": "Archive observed. Reopen and send a message.",
+  "归档后曾切回 WebSocket，最近记录为 HTTP": "WebSocket resumed after archiving. The latest request used HTTP.",
+  "此分类最近 24 小时没有可识别的请求": "No identifiable requests in this group in the last 24 hours",
+  "近 5 分钟未发现大请求或非增量提醒": "No large requests or non-incremental alerts in the last 5 minutes",
+  "近 5 分钟暂无传输记录": "No transport records in the last 5 minutes",
+  "返回会话列表": "Back to sessions",
+  "Codex 请求提醒": "Codex request alert",
+  "正在监控": "Monitoring",
+  "读取失败": "Read failed",
+  "暂时无法读取 Codex 日志": "Unable to read Codex logs",
+  "上次读取的数据仍可在下方查看。": "The last available data is shown below.",
+  "浏览器不支持通知": "Notifications are unavailable in this browser",
+  "系统通知已启用": "System notifications enabled",
+  "通知已被浏览器拒绝": "The browser blocked notifications",
+  "通知未启用": "Notifications are off",
+  "{0} 小时 {1} 分前": "{0}h {1}m ago",
+  "{0} 分 {1} 秒前": "{0}m {1}s ago",
+  "{0} 秒前": "{0}s ago",
+  "刚刚": "Just now",
+  "最近 24 小时 · 已记录上传 {0} · 下载 -": "Last 24 hours · Recorded upload {0} · Download -",
+  "上传合计为 {0} 条 HTTP 压缩请求体大小之和。日志未提供 WebSocket 或下载字节数。": "Upload total includes {0} compressed HTTP request bodies. Logs provide no WebSocket or download byte counts.",
+  "暂无可列出的 HTTP 大小记录或 WebSocket 非增量事件。": "No HTTP sizes or non-incremental WebSocket events recorded.",
+  "最近 {0} 条可确认的记录（最多 10 条）": "Recent confirmed records ({0} of up to 10)",
+  "压缩前 {0}": "Before compression {0}",
+  "5 分钟内非增量 {0} 次": "Non-incremental requests in 5 min: {0}",
+  "归档后已切回 WebSocket · {0}": "WebSocket resumed after archiving · {0}",
+  "归档后最近请求仍走 HTTP · {0}": "Latest request after archiving still used HTTP · {0}",
+  "{0} 条 HTTP 大请求，最大 {1}（{2}）": "Large HTTP requests: {0}. Largest: {1} ({2})",
+  "{0} 条 WebSocket 非增量提醒": "Non-incremental WebSocket alerts: {0}",
+  "最近传输记录：{0} 个会话走 WebSocket，{1} 个走 HTTP": "Recent sessions by transport · WebSocket: {0} · HTTP: {1}",
+  "近 5 分钟 · {0} 个会话有提醒": "Sessions with alerts in the last 5 minutes: {0}",
+  "查看这 {0} 个会话": "View sessions ({0})",
+  "{0} HTTP 请求过大": "Large HTTP request ({0})"
+};
+const language = $('language');
+const languageKey = 'codex-request-monitor.language';
+let locale = navigator.language.toLowerCase().startsWith('zh') ? 'zh-CN' : 'en';
+try {
+  const saved = localStorage.getItem(languageKey);
+  if (saved === 'en' || saved === 'zh-CN') locale = saved;
+} catch {
+  // Embedded plugin views may disallow storage.
+}
+function t(message, ...args) {
+  const template = locale === 'en' ? english[message] ?? message : message;
+  return template.replace(/\{(\d+)\}/g, (_, index) => args[index]);
+}
+const labels = [...document.querySelectorAll('[data-i18n], [data-i18n-label]')].map(node => ({
+  node,
+  attribute: node.hasAttribute('data-i18n-label') ? 'aria-label' : null,
+  original: node.getAttribute('aria-label') ?? node.textContent,
+}));
+function translateLabels() {
+  document.documentElement.lang = language.value = locale;
+  document.title = t('Codex 请求监控');
+  for (const {node, attribute, original} of labels) {
+    if (attribute) node.setAttribute(attribute, t(original));
+    else node.textContent = t(original);
+  }
+}
 const sidebar=typeof window.readLocalMonitorStatus==='function', notificationsSupported=!sidebar&&'Notification' in window;
 $('notify').hidden=sidebar;
 $('pageAlerts').hidden=!sidebar;
@@ -139,17 +265,20 @@ let initialized=false,lastId=0,latest=null,group='chat',refreshing=false;
 let expandedThread = null;
 let alertsOnly = false;
 const recentWindow = 5 * 60;
-const date=t=>new Date(t*1000).toLocaleString('zh-CN',{hour12:false,month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});const mib=n=>(n/1048576).toFixed(2)+' MiB';
+const date=t=>new Date(t*1000).toLocaleString(locale,{hour12:false,month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});const mib=n=>(n/1048576).toFixed(2)+' MiB';
 function timeAgo(time, now) {
   const seconds = Math.max(0, now - time);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
-  if (hours) return hours + ' 小时 ' + (minutes % 60) + ' 分前';
-  if (minutes) return minutes + ' 分 ' + (seconds % 60) + ' 秒前';
-  return seconds ? seconds + ' 秒前' : '刚刚';
+  if (hours) return t('{0} 小时 {1} 分前', hours, minutes % 60);
+  if (minutes) return t('{0} 分 {1} 秒前', minutes, seconds % 60);
+  return seconds ? t('{0} 秒前', seconds) : t('刚刚');
 }
 function cell(tr,text,cls){const td=document.createElement('td');if(cls)td.className=cls;td.textContent=text;tr.append(td);return td}function sub(td,text){const s=document.createElement('span');s.className='muted';s.textContent=text;td.append(s);return s}
 const reasonNames={connection_closed:'连接关闭',restored_history:'恢复历史',no_previous_request:'无上一请求',no_previous_response:'无可用上一响应',no_previous_response_id:'无上一响应 ID',input_mismatch:'输入不匹配',input_shortened:'输入变短',model_changed:'模型变化',reasoning_changed:'推理设置变化',tools_changed:'工具变化',text_changed:'输出设置变化',service_tier_changed:'服务等级变化'};
+function sessionTitle(thread) {
+  return thread.title_missing ? t(thread.title) : thread.title;
+}
 function byteSize(bytes) {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1048576) return (bytes / 1024).toFixed(2) + ' KiB';
@@ -169,9 +298,9 @@ function appendSessionDetail(row, data, thread) {
     const guide = document.createElement('button');
     guide.type = 'button';
     guide.className = 'retry-guide';
-    guide.textContent = '手动重试 WebSocket';
+    guide.textContent = t('手动重试 WebSocket');
     guide.onclick = () => {
-      $('retryGuideThread').textContent = thread.title;
+      $('retryGuideThread').textContent = sessionTitle(thread);
       $('retryGuide').showModal();
     };
     detail.append(guide);
@@ -179,25 +308,25 @@ function appendSessionDetail(row, data, thread) {
 
   const total = document.createElement('p');
   const uploaded = uploads.reduce((sum, event) => sum + event.compressed, 0);
-  total.textContent = '最近 24 小时 · 已记录上传 ' + (uploads.length ? byteSize(uploaded) : '-') + ' · 下载 -';
+  total.textContent = t('最近 24 小时 · 已记录上传 {0} · 下载 -', uploads.length ? byteSize(uploaded) : '-');
   const note = document.createElement('p');
   note.className = 'muted';
-  note.textContent = '上传合计为 ' + uploads.length + ' 条 HTTP 压缩请求体大小之和。日志未提供 WebSocket 或下载字节数。';
+  note.textContent = t('上传合计为 {0} 条 HTTP 压缩请求体大小之和。日志未提供 WebSocket 或下载字节数。', uploads.length);
   detail.append(total, note);
   if (!events.length) {
     const empty = document.createElement('p');
-    empty.textContent = '暂无可列出的 HTTP 大小记录或 WebSocket 非增量事件。';
+    empty.textContent = t('暂无可列出的 HTTP 大小记录或 WebSocket 非增量事件。');
     detail.append(empty);
     return;
   }
 
   const table = document.createElement('table');
-  table.createCaption().textContent = '最近 ' + events.length + ' 条可确认的记录（最多 10 条）';
+  table.createCaption().textContent = t('最近 {0} 条可确认的记录（最多 10 条）', events.length);
   const header = table.createTHead().insertRow();
-  for (const label of ['时间', '传输', '上传', '下载']) {
+  for (const label of [t('时间'), t('传输'), t('上传'), t('下载')]) {
     const th = document.createElement('th');
     th.scope = 'col';
-    th.textContent = label;
+    th.textContent = t(label);
     header.append(th);
   }
   const body = table.createTBody();
@@ -205,10 +334,10 @@ function appendSessionDetail(row, data, thread) {
     const record = body.insertRow();
     const http = event.compressed != null;
     cell(record, date(event.time), 'timestamp');
-    const transport = cell(record, http ? 'HTTP' : 'WebSocket 非增量');
-    if (!http && Object.hasOwn(reasonNames, event.reason)) sub(transport, reasonNames[event.reason]);
+    const transport = cell(record, http ? 'HTTP' : t('WebSocket 非增量'));
+    if (!http && Object.hasOwn(reasonNames, event.reason)) sub(transport, t(reasonNames[event.reason]));
     const upload = cell(record, http ? byteSize(event.compressed) : '-');
-    if (http) sub(upload, '压缩前 ' + byteSize(event.raw));
+    if (http) sub(upload, t('压缩前 {0}', byteSize(event.raw)));
     cell(record, '-');
   }
   detail.append(table);
@@ -219,7 +348,7 @@ function sessionToggle(row, name, thread, focusedThread) {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'session-toggle';
-  button.textContent = thread.title;
+  button.textContent = sessionTitle(thread);
   button.dataset.thread = thread.id;
   button.setAttribute('aria-expanded', String(expandedThread === thread.id));
   if (expandedThread === thread.id) button.setAttribute('aria-controls', 'detail-' + thread.id);
@@ -242,48 +371,48 @@ function renderSessions(entries, data, limit, wsAlertsByThread) {
     const tr = rows.insertRow();
     const name = cell(tr, '', 'name');
     focus = sessionToggle(tr, name, x, focusedThread) || focus;
-    const source = x.group === 'chat' ? '' : x.classification === 'internal' ? '内部线程 · ' : '来源未确认 · ';
+    const source = x.group === 'chat' ? '' : x.classification === 'internal' ? t('内部线程 · ') : t('来源未确认 · ');
     sub(name, source + x.id.slice(-8));
     const alerts = wsAlertsByThread.get(x.id);
     if (alerts) {
       const newest = alerts[0];
       const badge = document.createElement('span');
       badge.className = 'tag alert';
-      const label = alerts.length > 1 ? '5 分钟内非增量 ' + alerts.length + ' 次' : '最近非增量';
+      const label = alerts.length > 1 ? t('5 分钟内非增量 {0} 次', alerts.length) : t('最近非增量');
       badge.textContent = label + ' · ' + timeAgo(newest.time, data.now);
       badge.title = date(newest.time);
       sub(name, '').append(badge);
     }
     const observed = Math.max(x.transport_time || 0, x.size?.time || 0, x.nonincremental?.time || 0);
-    cell(tr, observed ? date(observed) : '未知', 'timestamp');
+    cell(tr, observed ? date(observed) : t('未知'), 'timestamp');
     const waitingForRetry = x.retry && !x.retry.request;
-    const transport = cell(tr, waitingForRetry ? '等待新请求' : x.transport || '未知');
+    const transport = cell(tr, waitingForRetry ? t('等待新请求') : x.transport || t('未知'));
     if (!waitingForRetry) {
-      sub(transport, x.transport === 'HTTP' ? '完整上下文（HTTP）' : '增量状态未知');
+      sub(transport, x.transport === 'HTTP' ? t('完整上下文（HTTP）') : t('增量状态未知'));
       if (x.transport_time && x.transport_time !== observed) sub(transport, date(x.transport_time));
     }
 
     const requestSize = waitingForRetry ? null : x.latest_request_size;
     const oversized = requestSize && requestSize.compressed >= limit;
-    const size = cell(tr, requestSize ? mib(requestSize.compressed) + ' · 压缩后' : '-', oversized ? 'size-alert' : '');
+    const size = cell(tr, requestSize ? mib(requestSize.compressed) + t(' · 压缩后') : '-', oversized ? 'size-alert' : '');
     const status = cell(tr, requestSize ? '' : '-');
     if (requestSize) {
-      sub(size, '压缩前 ' + mib(requestSize.raw) + ' · ' + date(requestSize.time));
+      sub(size, t('压缩前 {0}', mib(requestSize.raw)) + ' · ' + date(requestSize.time));
       const tag = document.createElement('span');
       tag.className = 'tag' + (oversized ? ' alert' : '');
-      tag.textContent = oversized ? '最近记录过大' : '最近记录未超限';
+      tag.textContent = oversized ? t('最近记录过大') : t('最近记录未超限');
       status.append(tag);
     }
     if (x.retry) {
       const {request, websocket_time} = x.retry;
-      if (!request) sub(transport, '已观察到归档，等待重新打开后发消息');
-      else if (request.transport === 'WebSocket') sub(transport, '归档后已切回 WebSocket · ' + date(websocket_time));
-      else if (websocket_time) sub(transport, '归档后曾切回 WebSocket，最近记录为 HTTP');
-      else sub(transport, '归档后最近请求仍走 HTTP · ' + date(request.time));
+      if (!request) sub(transport, t('已观察到归档，等待重新打开后发消息'));
+      else if (request.transport === 'WebSocket') sub(transport, t('归档后已切回 WebSocket · {0}', date(websocket_time)));
+      else if (websocket_time) sub(transport, t('归档后曾切回 WebSocket，最近记录为 HTTP'));
+      else sub(transport, t('归档后最近请求仍走 HTTP · {0}', date(request.time)));
     }
     if (expandedThread === x.id) appendSessionDetail(rows.insertRow(), data, x);
   }
-  if (!entries.length) cell(rows.insertRow(), '此分类最近 24 小时没有可识别的请求', 'empty').colSpan = 5;
+  if (!entries.length) cell(rows.insertRow(), t('此分类最近 24 小时没有可识别的请求'), 'empty').colSpan = 5;
   focus?.focus({preventScroll: true});
 }
 function render(d) {
@@ -292,10 +421,10 @@ function render(d) {
   $('count').textContent = d.threads.length;
   $('large').textContent = big.length;
   $('wsfull').textContent = d.nonincremental_events.length;
-  $('updated').textContent = new Date(d.now * 1000).toLocaleTimeString('zh-CN', {hour12: false});
+  $('updated').textContent = new Date(d.now * 1000).toLocaleTimeString(locale, {hour12: false});
   const otherCount = d.threads.filter(x => x.group === 'other').length;
-  $('filterChats').textContent = '我的聊天 (' + (d.threads.length - otherCount) + ')';
-  $('filterOther').textContent = '其他 / 未匹配 (' + otherCount + ')';
+  $('filterChats').textContent = t('我的聊天') + ' (' + (d.threads.length - otherCount) + ')';
+  $('filterOther').textContent = t('其他 / 未匹配') + ' (' + otherCount + ')';
   const current = new Map(d.threads.map(thread => [thread.id, thread]));
   const wsAlerts = d.nonincremental_events.filter(event => {
     const thread = current.get(event.thread);
@@ -313,22 +442,22 @@ function render(d) {
   const details = [];
   if (recentHttp.length) {
     const largest = recentHttp.reduce((a, b) => a.compressed >= b.compressed ? a : b);
-    details.push(recentHttp.length + ' 条 HTTP 大请求，最大 ' + byteSize(largest.compressed) + '（' + current.get(largest.thread).title + '）');
+    details.push(t('{0} 条 HTTP 大请求，最大 {1}（{2}）', recentHttp.length, byteSize(largest.compressed), sessionTitle(current.get(largest.thread))));
   }
-  if (wsAlerts.length) details.push(wsAlerts.length + ' 条 WebSocket 非增量提醒');
+  if (wsAlerts.length) details.push(t('{0} 条 WebSocket 非增量提醒', wsAlerts.length));
   if (!affected.size && recent.length) {
     const httpCount = recent.filter(thread => thread.transport === 'HTTP').length;
     const wsCount = recent.filter(thread => thread.transport === 'WebSocket').length;
-    details.push('最近传输记录：' + wsCount + ' 个会话走 WebSocket，' + httpCount + ' 个走 HTTP');
+    details.push(t('最近传输记录：{0} 个会话走 WebSocket，{1} 个走 HTTP', wsCount, httpCount));
   }
   if (!affected.size) alertsOnly = false;
   $('overview').dataset.alert = String(affected.size > 0);
-  $('overviewTitle').textContent = affected.size ? '近 5 分钟 · ' + affected.size + ' 个会话有提醒'
-    : recent.length ? '近 5 分钟未发现大请求或非增量提醒' : '近 5 分钟暂无传输记录';
-  $('overviewDetail').textContent = details.join('；');
+  $('overviewTitle').textContent = affected.size ? t('近 5 分钟 · {0} 个会话有提醒', affected.size)
+    : recent.length ? t('近 5 分钟未发现大请求或非增量提醒') : t('近 5 分钟暂无传输记录');
+  $('overviewDetail').textContent = details.join(locale === 'en' ? ' · ' : '；');
   $('overviewDetail').hidden = !details.length;
   $('filterAlerts').hidden = !affected.size;
-  $('filterAlerts').textContent = alertsOnly ? '返回会话列表' : '查看这 ' + affected.size + ' 个会话';
+  $('filterAlerts').textContent = alertsOnly ? t('返回会话列表') : t('查看这 {0} 个会话', affected.size);
   $('filterAlerts').setAttribute('aria-pressed', String(alertsOnly));
   $('filterChats').setAttribute('aria-pressed', String(!alertsOnly && group === 'chat'));
   $('filterOther').setAttribute('aria-pressed', String(!alertsOnly && group === 'other'));
@@ -340,8 +469,8 @@ function render(d) {
     if (freshHttp.length || freshWs.length) {
       if (notificationsSupported && Notification.permission === 'granted') {
         const event = freshHttp[0] || freshWs[0];
-        new Notification('Codex 请求提醒', {
-          body: event.title + ' · ' + (freshHttp.length ? mib(event.compressed) + ' HTTP 请求过大' : 'WebSocket 非增量')
+        new Notification(t('Codex 请求提醒'), {
+          body: sessionTitle(current.get(event.thread)) + ' · ' + (freshHttp.length ? t('{0} HTTP 请求过大', mib(event.compressed)) : t('WebSocket 非增量'))
         });
       }
     }
@@ -352,11 +481,67 @@ function render(d) {
 async function readStatus(){
   if(sidebar)return window.readLocalMonitorStatus();
   const response=await fetch('/api/status',{cache:'no-store'});
-  if(!response.ok)throw Error('日志读取失败');
+  if(!response.ok)throw Error('Log read failed');
   return response.json();
 }
-async function refresh(){if(refreshing)return;refreshing=true;try{const d=await readStatus();latest=d;render(d);$('live').textContent='正在监控';$('dot').classList.remove('bad')}catch(e){$('live').textContent='读取失败';$('dot').classList.add('bad');$('overview').dataset.alert='true';$('overviewTitle').textContent='暂时无法读取 Codex 日志';$('overviewDetail').textContent='上次读取的数据仍可在下方查看。';$('overviewDetail').hidden=!latest;$('filterAlerts').hidden=true}finally{refreshing=false}}
-function selectGroup(value){group=value;alertsOnly=false;if(latest)render(latest)}
-$('filterAlerts').onclick=()=>{alertsOnly=!alertsOnly;if(latest)render(latest)};
-$('filterChats').onclick=()=>selectGroup('chat');$('filterOther').onclick=()=>selectGroup('other');$('notify').onclick=async()=>{if(!notificationsSupported){$('notify').textContent='浏览器不支持通知';return}const p=await Notification.requestPermission();$('notify').textContent=p==='granted'?'系统通知已启用':p==='denied'?'通知已被浏览器拒绝':'通知未启用'};threshold.oninput=()=>{if(latest&&threshold.validity.valid&&threshold.value)render(latest)};if(notificationsSupported&&Notification.permission==='granted')$('notify').textContent='系统通知已启用';refresh();setInterval(refresh,5000);
+let readFailed = false;
+let notificationLabel = notificationsSupported && Notification.permission === 'granted'
+  ? '系统通知已启用' : '启用系统通知';
+
+function renderReadState() {
+  $('live').textContent = t(readFailed ? '读取失败' : latest ? '正在监控' : '正在连接');
+  $('dot').classList.toggle('bad', readFailed);
+  if (!readFailed) return;
+  $('overview').dataset.alert = 'true';
+  $('overviewTitle').textContent = t('暂时无法读取 Codex 日志');
+  $('overviewDetail').textContent = t('上次读取的数据仍可在下方查看。');
+  $('overviewDetail').hidden = !latest;
+  $('filterAlerts').hidden = true;
+}
+
+async function refresh() {
+  if (refreshing) return;
+  refreshing = true;
+  try {
+    latest = await readStatus();
+    render(latest);
+    readFailed = false;
+  } catch {
+    readFailed = true;
+  } finally {
+    refreshing = false;
+    renderReadState();
+  }
+}
+
+function selectGroup(value) {
+  group = value;
+  alertsOnly = false;
+  if (latest) render(latest);
+}
+$('filterAlerts').onclick = () => { alertsOnly = !alertsOnly; if (latest) render(latest); };
+$('filterChats').onclick = () => selectGroup('chat');
+$('filterOther').onclick = () => selectGroup('other');
+$('notify').onclick = async () => {
+  if (!notificationsSupported) notificationLabel = '浏览器不支持通知';
+  else {
+    const permission = await Notification.requestPermission();
+    notificationLabel = permission === 'granted' ? '系统通知已启用'
+      : permission === 'denied' ? '通知已被浏览器拒绝' : '通知未启用';
+  }
+  $('notify').textContent = t(notificationLabel);
+};
+threshold.oninput = () => { if (latest && threshold.validity.valid && threshold.value) render(latest); };
+language.onchange = () => {
+  locale = language.value;
+  try { localStorage.setItem(languageKey, locale); } catch {}
+  translateLabels();
+  $('notify').textContent = t(notificationLabel);
+  if (latest) render(latest);
+  renderReadState();
+};
+translateLabels();
+$('notify').textContent = t(notificationLabel);
+refresh();
+setInterval(refresh, 5000);
 </script></body></html>

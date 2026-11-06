@@ -23,4 +23,8 @@ class MonitorTest(unittest.TestCase):
     for i,ident in enumerate(['u','g','m','missing'],1):db.execute('insert into logs values(?,?,?,?,?,?)',(i,now,0,ident,'codex_http_client::request','transport="responses_http" api.path="/responses" Compressed request body pre_compression_bytes=200 post_compression_bytes=100'))
     db.commit()
    r=collect(logs,state,now); rows={x['id']:x for x in r['threads']};self.assertEqual(rows['u']['group'],'chat');self.assertEqual(rows['g']['group'],'other');self.assertEqual(rows['m']['group'],'chat');self.assertEqual(rows['missing']['group'],'other');self.assertEqual(rows['missing']['classification'],'unmatched');self.assertEqual(len(r['sizes']),4)
+   self.assertEqual(rows['u']['title'], '用户聊天')
+   self.assertFalse(rows['u']['title_missing'])
+   self.assertTrue(rows['m']['title_missing'])
+   self.assertTrue(rows['missing']['title_missing'])
 if __name__=='__main__': unittest.main()

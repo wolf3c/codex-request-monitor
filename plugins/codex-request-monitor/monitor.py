@@ -74,7 +74,7 @@ def collect(log_db=LOG_DB, state_db=STATE_DB, now=None):
             internal = kind in ('subagent', 'guardian_review') or (source or '').startswith('{"subagent"')
             is_chat = bool(entry) and not internal and (source in ('vscode', 'cli') or kind in ('user', 'automation', 'agent_created_thread', 'agent_forked_thread', 'chatgpt_handoff'))
             classification = 'chat' if is_chat else 'internal' if internal else 'unmatched' if not entry else 'unclassified'
-            row = threads.setdefault(thread_id, {'id':thread_id,'title':name or ('未命名聊天' if is_chat else '来源未确认'),'group':'chat' if is_chat else 'other','classification':classification,'transport':None,'transport_time':None,'size':None,'latest_request_size':None,'nonincremental':None})
+            row = threads.setdefault(thread_id, {'id':thread_id,'title':name or ('未命名聊天' if is_chat else '来源未确认'),'title_missing': not name,'group':'chat' if is_chat else 'other','classification':classification,'transport':None,'transport_time':None,'size':None,'latest_request_size':None,'nonincremental':None})
             latest_transport = transport and row['transport'] is None
             if transport and row['transport'] is None:
                 row.update(transport=transport, transport_time=ts)
@@ -134,12 +134,12 @@ def monitor_is_running(port):
             return False
         response = connection.getresponse()
         if response.status != 200 or response.read(len(MONITOR_ID) + 1) != MONITOR_ID:
-            raise RuntimeError(f'端口 {port} 已被其他服务占用')
+            raise RuntimeError(f'Port {port} is in use by another service')
         return True
 
 def ensure_monitor(port):
     if not 1 <= port <= 65535:
-        raise ValueError('监控端口必须在 1 到 65535 之间')
+        raise ValueError('The monitor port must be between 1 and 65535')
     if monitor_is_running(port):
         return
 
@@ -155,7 +155,7 @@ def ensure_monitor(port):
             if monitor_is_running(port):
                 return
             time.sleep(0.05)
-        raise RuntimeError(f'监控服务未能在端口 {port} 启动')
+        raise RuntimeError(f'The monitor did not start on port {port}')
     except (OSError, HTTPException, RuntimeError):
         process.terminate()
         process.wait()
@@ -173,8 +173,8 @@ if __name__ == '__main__':
 
     server = ThreadingHTTPServer(('127.0.0.1', int(os.environ.get('CODEX_MONITOR_PORT', '0'))), Handler)
     url = f'http://127.0.0.1:{server.server_port}/'
-    print('Codex 请求监控：' + url, flush=True)
-    print('保持此窗口开启；按 Control-C 停止。', flush=True)
+    print('Codex Request Monitor: ' + url, flush=True)
+    print('Keep this window open. Press Control-C to stop.', flush=True)
     if sys.argv[1:] != ['--serve-only']:
         webbrowser.open(url)
     try: server.serve_forever()

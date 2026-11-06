@@ -8,7 +8,7 @@ class SidebarTest(unittest.TestCase):
     def test_entrypoint_opens_without_reading_logs(self):
         tools = {tool['name']: tool for tool in dispatch('tools/list', {})['tools']}
         opener = tools['open_request_monitor']
-        self.assertEqual(opener['title'], 'Codex 请求监控')
+        self.assertEqual(opener['title'], 'Codex Request Monitor')
         self.assertEqual(opener['_meta']['openai/ui']['entrypoints'], [{'type': 'global'}])
         self.assertEqual(opener['_meta']['ui']['resourceUri'], RESOURCE_URI)
         self.assertEqual([icon['theme'] for icon in opener['icons']], ['light', 'dark'])
@@ -19,6 +19,7 @@ class SidebarTest(unittest.TestCase):
             self.assertEqual(dispatch('tools/call', {'name': opener['name'], 'arguments': {}}), {'content': []})
             resource = dispatch('resources/read', {'uri': RESOURCE_URI})['contents'][0]
             collect.assert_not_called()
+        self.assertIn('Codex Request Monitor', resource['text'])
         self.assertIn('Codex 请求监控', resource['text'])
         self.assertIn("connect-src 'none'", resource['text'])
 

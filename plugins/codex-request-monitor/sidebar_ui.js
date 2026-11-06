@@ -14,7 +14,7 @@
       const id = ++nextId;
       const timer = setTimeout(() => {
         pending.delete(id);
-        reject(new Error('本机插件响应超时'));
+        reject(new Error('Local plugin timed out'));
       }, 8000);
       pending.set(id, {resolve, reject, timer});
       send({id, method, params});
@@ -34,12 +34,12 @@
     pending.delete(data.id);
     clearTimeout(call.timer);
     if (origin !== 'null') targetOrigin = origin;
-    if (data.error) call.reject(new Error('本机插件读取失败'));
+    if (data.error) call.reject(new Error('Local plugin read failed'));
     else call.resolve(data.result);
   });
 
   window.readLocalMonitorStatus = async () => {
-    if (closed || window.parent === window) throw new Error('本机插件界面未连接');
+    if (closed || window.parent === window) throw new Error('Local plugin view is disconnected');
     connected ??= request('ui/initialize', {
       protocolVersion: '2026-01-26',
       appInfo: {name: 'codex-request-monitor', version: '1.0.0'},
@@ -49,7 +49,7 @@
     await connected;
     const result = await request('tools/call', {name: 'read_request_monitor', arguments: {}});
     const status = result?._meta?.status;
-    if (result?.isError || !status) throw new Error('无法读取本机 Codex 日志');
+    if (result?.isError || !status) throw new Error('Unable to read local Codex logs');
     return status;
   };
 })();

@@ -1,16 +1,14 @@
 # Codex Request Monitor
 
+[English](README.en.md)
+
+![按会话区分 HTTP 和 WebSocket、查看压缩后的 HTTP 请求体大小、定位明确记录的非增量事件。图中使用合成数据。](docs/overview.zh-CN.svg)
+
 Codex 请求监控是一个本机只读诊断面板。Codex 卡住或网络上传异常时，可以按会话查看日志记录的 HTTP / WebSocket 传输方式、HTTP 请求体大小和明确记录的 WebSocket 非增量事件。
-
-This local, read-only diagnostic dashboard shows which Codex conversation used HTTP or WebSocket, the HTTP request body sizes recorded by Codex, and explicitly logged non-incremental WebSocket events. It does not intercept traffic or change how Codex sends requests.
-
-![Codex Request Monitor with synthetic data](docs/monitor-demo.png)
-
-截图使用合成数据。 Screenshot uses synthetic data.
 
 ## 安装与使用 / Install and use
 
-macOS 测试版，需要 Python 3.9+。插件在内置 `codex-cli 0.166.0-alpha.6` 的桌面版上开发。
+macOS 测试版，需要 Python 3.9+。插件在内置 `codex-cli 0.166.0-alpha.6` 的桌面版上开发。当前源码的面板默认跟随浏览器语言，可在右上角切换简体中文和英文。下面固定的 `v0.1.0-beta` 发布早于语言切换功能。
 
 ### 1. 终端安装（推荐） / Terminal (recommended)
 
@@ -25,11 +23,11 @@ codex plugin add codex-request-monitor@codex-request-monitor-marketplace
 
 1. 打开 **Plugins → Add plugin marketplace**。
 2. **Source** 填 `wolf3c/codex-request-monitor`，**Git ref** 填 `v0.1.0-beta`。
-3. 点击 **Add marketplace**，找到 **Codex 请求监控**，点击 **Install**。
+3. 点击 **Add marketplace**，找到 **Codex 请求监控**（新版显示为 **Codex Request Monitor**），点击 **Install**。
 
 ### 打开已安装的面板 / Open the installed dashboard
 
-在 Codex 桌面版左侧 **⋯** 菜单打开「Codex 请求监控」，可用图钉固定。若入口未出现，等当前任务结束后重新打开桌面应用。
+在 Codex 桌面版左侧 **⋯** 菜单打开监控面板，可用图钉固定。若入口未出现，等当前任务结束后重新打开桌面应用。
 
 ### 独立运行（无需安装插件） / Run in a browser
 

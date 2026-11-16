@@ -18,4 +18,8 @@ Temporary proxy launch is a separate, explicit action. It can start an already-s
 
 临时代理启动是独立、需主动点击的操作，仅为已退出的 Codex 创建带临时代理变量的新进程。工具不会退出或强制结束 Codex，也不写用户配置文件。应用仍运行或空闲无法确认时禁止自动重启。启动前会通过已识别的本地回环代理，仅发送固定目标 `chatgpt.com:443` 的 HTTP CONNECT 请求，不发送凭据或用户内容。仅监听回环地址的启动接口要求同源 POST 和一次性操作令牌，不保存启动历史。侧栏操作只打开外部浏览器网页，不能重启 Codex。
 
+Language and system notification choices are stored in browser local storage for the current monitor address. In-page alerts remain active when system notifications are off.
+
+语言和系统通知开关保存在浏览器当前监控地址的本地存储中；关闭系统通知后，页面内提醒继续显示。
+
 Questions / 联系： [GitHub Issues](https://github.com/wolf3c/codex-request-monitor/issues)。请先移除真实会话信息、原始日志及凭据。

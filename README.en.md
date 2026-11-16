@@ -86,8 +86,10 @@ python3 plugins/codex-request-monitor/monitor.py
 
 ## Read the dashboard
 
+- “System notifications: On / Off” controls system alerts and remembers your choice for the same monitor address in this browser, including other open pages at that address. Turning it off keeps in-page alerts active. Turning it on requests browser permission if needed.
+
 - The proxy status below the launch button expands into diagnostic details. Opening or returning to the page, and every 15 seconds while visible, automatically inspects launch proxy variables in Codex-related macOS processes, candidate proxy variable names in the configuration directory’s `.env` file, system proxy configuration, TUN interfaces, and configured loopback proxy ports. It does not change settings, run proxy launch scripts, or access external services. Configuration, TCP reachability, and TUN interfaces do not prove actual request routing; insufficient evidence is shown as “Unconfirmed”.
-- The overview shows large HTTP requests and active non-incremental WebSocket alerts from the last five minutes. Expand the 24-hour summary for historical counts.
+- The button beside “Sessions” counts chats with large HTTP requests or active non-incremental WebSocket alerts in the last five minutes. Click to filter; click again to return. Expand the 24-hour statistics below the table for historical counts.
 - Expand a session to see up to ten recorded events and the 24-hour sum of logged compressed HTTP request bodies. This sum reflects prepared request bodies. A failed request may have sent fewer bytes.
 - Incremental state shows “Incremental” or “Non-incremental” only with explicit evidence for the latest request; insufficient evidence appears as `-`. Missing WebSocket or download sizes also appear as `-`.
 - “Latest requested model” shows only the latest request’s logged model ID, or `-` when missing. It does not prove which model the server actually executed.

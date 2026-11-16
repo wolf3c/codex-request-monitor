@@ -26,23 +26,26 @@ input, button, select, .open-conversation { font: inherit; color: inherit; borde
 input { width: 78px; font-variant-numeric: tabular-nums; }
 button { cursor: pointer; font-weight: 600; }
 button:hover { background: #f2e7d9; }
+#notify[aria-checked="true"] { background: #ede1d0; border-color: #c7b69e; }
 :focus-visible { outline: 2px solid #ad510e; outline-offset: 2px; }
 .page-alerts { color: var(--muted); }
-.summary { margin: 20px 0 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 9px; background: var(--band); }
-.summary[data-alert="true"] { background: #fff0df; border-color: #edccad; }
-.summary-main { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; }
-.summary h2 { margin: 0; font-size: 16px; }
-.summary p { margin: 5px 0 0; color: var(--muted); }
-.summary-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-top: 10px; color: var(--muted); font-size: 12px; }
-.summary-meta summary { cursor: pointer; }
+.session-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.alert-filter { font-size: 12px; font-weight: 400; }
+.alert-filter[data-alert="true"] { color: var(--warning); background: #fff0df; border-color: #edccad; }
+.alert-filter[aria-pressed="true"] { background: #ffdfbe; border-color: #c7a278; font-weight: 600; }
+.alert-filter:disabled { background: transparent; border-color: transparent; color: var(--muted); opacity: 1; cursor: default; }
+.history-stats { margin-top: 14px; color: var(--muted); font-size: 12px; }
+.history-stats summary { cursor: pointer; }
 .summary-history { margin-top: 5px; }
-.network-diagnostics { margin: 8px 0 16px; }
+.network-diagnostics { margin: 8px 0 0; }
 .network-diagnostics summary { cursor: pointer; color: var(--muted); }
 .network-diagnostics summary:hover { text-decoration: underline; text-underline-offset: 3px; }
 .network-results { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 10px 16px; margin: 14px 0; }
 .network-results dt { font-weight: 600; }
 .network-results dd { margin: 0; overflow-wrap: anywhere; }
-.temporary-proxy { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.temporary-proxy { margin: 20px 0 24px; padding: 16px; border: 1px solid var(--line); border-radius: 9px; background: #fcf8f2; }
+.proxy-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px 16px; }
+.proxy-toolbar h2 { margin: 0; font-size: 18px; }
 .temporary-proxy p { margin: 8px 0; }
 button:disabled { cursor: not-allowed; opacity: .65; }
 @media (max-width: 600px) { .network-results { grid-template-columns: minmax(0, 1fr); gap: 5px; } .network-results dt { margin-top: 8px; } }
@@ -105,28 +108,15 @@ tr:last-child td { border-bottom: 0; }
         <select id="language"><option value="zh-CN">简体中文</option><option value="en">English</option></select>
       </label>
       <label><span data-i18n>大请求阈值</span> <input id="threshold" type="number" min="0.01" max="100000" step="any" value="10"> MiB</label>
-      <button id="notify" type="button" data-i18n>启用系统通知</button>
+      <button id="notify" type="button" role="switch" aria-checked="false" data-i18n-label aria-label="系统通知">系统通知：关</button>
       <span class="page-alerts" id="pageAlerts" hidden data-i18n>页面内告警</span>
     </div>
   </header>
-  <section class="summary" id="overview" data-i18n-label aria-label="监控概况">
-    <div class="summary-main">
-      <div role="status">
-        <h2 id="overviewTitle" data-i18n>正在读取近 5 分钟的请求</h2>
-        <p id="overviewDetail" hidden></p>
-      </div>
-      <button id="filterAlerts" type="button" aria-controls="rows" aria-pressed="false" hidden data-i18n>只看提醒会话</button>
+  <section class="temporary-proxy" id="temporaryProxy" aria-labelledby="proxyTitle">
+    <div class="proxy-toolbar">
+      <h2 id="proxyTitle" data-i18n>网络与代理</h2>
+      <button id="startTemporaryProxy" type="button" disabled aria-describedby="proxyReadiness" data-i18n>使用临时代理启动 Codex</button>
     </div>
-    <div class="summary-meta">
-      <span><span data-i18n>最后更新</span> <span id="updated">—</span></span>
-      <details>
-        <summary data-i18n>最近 24 小时统计</summary>
-        <div class="summary-history"><span id="count">—</span> <span data-i18n>个会话</span> · <span id="large">—</span> <span data-i18n>条 HTTP 大请求</span> · <span id="wsfull">—</span> <span data-i18n>条 WS 非增量事件</span></div>
-      </details>
-    </div>
-  </section>
-  <div class="temporary-proxy" id="temporaryProxy">
-    <button id="startTemporaryProxy" type="button" disabled aria-describedby="proxyReadiness" data-i18n>使用临时代理启动 Codex</button>
     <p class="sub" id="proxyActionResult" role="status" hidden></p>
     <details class="network-diagnostics" id="networkDiagnostics">
       <summary aria-labelledby="proxyReadiness"><span id="proxyReadiness" role="status" data-i18n>待确认</span></summary>
@@ -145,9 +135,12 @@ tr:last-child td { border-bottom: 0; }
       <button id="openTemporaryProxyPage" type="button" hidden data-i18n>在外部浏览器中操作</button>
       <p class="sub" id="externalProxyResult" role="status"></p>
     </details>
-  </div>
+  </section>
   <div class="title">
-    <h2 data-i18n>会话记录</h2>
+    <div class="session-heading">
+      <h2 data-i18n>会话记录</h2>
+      <button id="filterAlerts" class="alert-filter" type="button" aria-controls="rows" aria-pressed="false" disabled data-i18n>近 5 分钟 · 读取中</button>
+    </div>
     <div class="filters" role="group" data-i18n-label aria-label="会话筛选">
       <button id="filterChats" type="button" aria-pressed="true" data-i18n>我的聊天</button>
       <button id="filterOther" type="button" aria-pressed="false" data-i18n>其他 / 未匹配</button>
@@ -159,7 +152,11 @@ tr:last-child td { border-bottom: 0; }
       <tbody id="rows"><tr><td colspan="6" class="empty" data-i18n>正在读取日志…</td></tr></tbody>
     </table>
   </div>
-  <p class="foot"><span class="live"><span class="dot" id="dot"></span><span id="live" data-i18n>正在连接</span></span> · <span data-i18n>每 5 秒更新 · 按最近观察时间排序</span><br>
+  <details class="history-stats">
+    <summary data-i18n>最近 24 小时统计</summary>
+    <div class="summary-history"><span id="count">—</span> <span data-i18n>个会话</span> · <span id="large">—</span> <span data-i18n>条 HTTP 大请求</span> · <span id="wsfull">—</span> <span data-i18n>条 WS 非增量事件</span></div>
+  </details>
+  <p class="foot"><span class="live"><span class="dot" id="dot"></span><span id="live" data-i18n>正在连接</span></span> · <span data-i18n>每 5 秒更新 · 按最近观察时间排序</span> · <span data-i18n>最后更新</span> <span id="updated">—</span><br>
   <span data-i18n>阈值按压缩后大小计算。最近一次请求缺少可匹配的大小记录时显示 -。展开会话可查看历史 HTTP 大小。</span></p>
 </main>
 <dialog id="retryGuide" class="retry-dialog" aria-labelledby="retryGuideTitle">
@@ -177,6 +174,22 @@ tr:last-child td { border-bottom: 0; }
 <script>
 const $=id=>document.getElementById(id), threshold=$('threshold');
 const english = {
+  "系统通知": "System notifications",
+  "系统通知：开": "System notifications: On",
+  "系统通知：关": "System notifications: Off",
+  "关闭系统通知": "Turn off system notifications",
+  "开启系统通知": "Turn on system notifications",
+  "通知已被浏览器拒绝，请在浏览器设置中允许。": "Notifications are blocked. Allow them in your browser settings.",
+  "无法读取通知偏好，当前已关闭。": "Notification preference unavailable; notifications are off.",
+  "无法保存通知偏好，刷新后可能重置。": "Unable to save this preference; it may reset after refreshing.",
+  "无法启用通知，请检查浏览器设置。": "Unable to enable notifications. Check your browser settings.",
+  "系统通知发送失败，请检查浏览器设置。": "Unable to send system notifications. Check your browser settings.",
+  "网络与代理": "Network & proxy",
+  "近 5 分钟 · 读取中": "Last 5 min \u00b7 Loading",
+  "近 5 分钟 · {0} 个会话提醒": "Last 5 min \u00b7 {0} chats with alerts",
+  "近 5 分钟 · 无提醒": "Last 5 min \u00b7 No alerts",
+  "近 5 分钟 · 暂无记录": "Last 5 min \u00b7 No records",
+  "日志读取失败": "Log read failed",
   "代理已生效，无需操作。": "Proxy is active. No action needed.",
   "代理未生效，建议开启临时代理。": "Proxy is inactive. Temporary proxy recommended.",
   "待确认": "Pending confirmation",
@@ -233,11 +246,7 @@ const english = {
   "检查失败，结果未确认。可重试；不会修改网络设置。": "Inspection failed; results are unconfirmed. You can retry; network settings are unchanged.",
   "日志只读 · 最近 24 小时": "Read-only logs · Last 24 hours",
   "大请求阈值": "Large request threshold",
-  "启用系统通知": "Enable system notifications",
   "页面内告警": "In-page alerts",
-  "监控概况": "Monitor overview",
-  "正在读取近 5 分钟的请求": "Loading requests from the last 5 minutes",
-  "只看提醒会话": "Show chats with alerts",
   "最后更新": "Last updated",
   "最近 24 小时统计": "Last 24 hours",
   "个会话": "sessions",
@@ -302,18 +311,10 @@ const english = {
   "已观察到归档，等待重新打开后发消息": "Archive observed. Reopen and send a message.",
   "归档后曾切回 WebSocket，最近记录为 HTTP": "WebSocket resumed after archiving. The latest request used HTTP.",
   "此分类最近 24 小时没有可识别的请求": "No identifiable requests in this group in the last 24 hours",
-  "近 5 分钟未发现大请求或非增量提醒": "No large requests or non-incremental alerts in the last 5 minutes",
-  "近 5 分钟暂无传输记录": "No transport records in the last 5 minutes",
-  "返回会话列表": "Back to sessions",
   "Codex 请求提醒": "Codex request alert",
   "正在监控": "Monitoring",
   "读取失败": "Read failed",
-  "暂时无法读取 Codex 日志": "Unable to read Codex logs",
-  "上次读取的数据仍可在下方查看。": "The last available data is shown below.",
   "浏览器不支持通知": "Notifications are unavailable in this browser",
-  "系统通知已启用": "System notifications enabled",
-  "通知已被浏览器拒绝": "The browser blocked notifications",
-  "通知未启用": "Notifications are off",
   "{0} 小时 {1} 分前": "{0}h {1}m ago",
   "{0} 分 {1} 秒前": "{0}m {1}s ago",
   "{0} 秒前": "{0}s ago",
@@ -326,11 +327,6 @@ const english = {
   "5 分钟内非增量 {0} 次": "Non-incremental requests in 5 min: {0}",
   "归档后已切回 WebSocket · {0}": "WebSocket resumed after archiving · {0}",
   "归档后最近请求仍走 HTTP · {0}": "Latest request after archiving still used HTTP · {0}",
-  "{0} 条 HTTP 大请求，最大 {1}（{2}）": "Large HTTP requests: {0}. Largest: {1} ({2})",
-  "{0} 条 WebSocket 非增量提醒": "Non-incremental WebSocket alerts: {0}",
-  "最近传输记录：{0} 个会话走 WebSocket，{1} 个走 HTTP": "Recent sessions by transport · WebSocket: {0} · HTTP: {1}",
-  "近 5 分钟 · {0} 个会话有提醒": "Sessions with alerts in the last 5 minutes: {0}",
-  "查看这 {0} 个会话": "View sessions ({0})",
   "{0} HTTP 请求过大": "Large HTTP request ({0})"
 };
 const language = $('language');
@@ -727,26 +723,12 @@ function render(d) {
   }
   const recentHttp = big.filter(event => current.has(event.thread) && d.now - event.time < recentWindow);
   const affected = new Set([...wsAlertsByThread.keys(), ...recentHttp.map(event => event.thread)]);
-  const recent = d.threads.filter(thread => thread.transport_time && d.now - thread.transport_time < recentWindow);
-  const details = [];
-  if (recentHttp.length) {
-    const largest = recentHttp.reduce((a, b) => a.compressed >= b.compressed ? a : b);
-    details.push(t('{0} 条 HTTP 大请求，最大 {1}（{2}）', recentHttp.length, byteSize(largest.compressed), sessionTitle(current.get(largest.thread))));
-  }
-  if (wsAlerts.length) details.push(t('{0} 条 WebSocket 非增量提醒', wsAlerts.length));
-  if (!affected.size && recent.length) {
-    const httpCount = recent.filter(thread => thread.transport === 'HTTP').length;
-    const wsCount = recent.filter(thread => thread.transport === 'WebSocket').length;
-    details.push(t('最近传输记录：{0} 个会话走 WebSocket，{1} 个走 HTTP', wsCount, httpCount));
-  }
+  const hasRecent = d.threads.some(thread => thread.transport_time && d.now - thread.transport_time < recentWindow);
   if (!affected.size) alertsOnly = false;
-  $('overview').dataset.alert = String(affected.size > 0);
-  $('overviewTitle').textContent = affected.size ? t('近 5 分钟 · {0} 个会话有提醒', affected.size)
-    : recent.length ? t('近 5 分钟未发现大请求或非增量提醒') : t('近 5 分钟暂无传输记录');
-  $('overviewDetail').textContent = details.join(locale === 'en' ? ' · ' : '；');
-  $('overviewDetail').hidden = !details.length;
-  $('filterAlerts').hidden = !affected.size;
-  $('filterAlerts').textContent = alertsOnly ? t('返回会话列表') : t('查看这 {0} 个会话', affected.size);
+  $('filterAlerts').dataset.alert = String(affected.size > 0);
+  $('filterAlerts').disabled = !affected.size;
+  $('filterAlerts').textContent = affected.size ? t('近 5 分钟 · {0} 个会话提醒', affected.size)
+    : hasRecent ? t('近 5 分钟 · 无提醒') : t('近 5 分钟 · 暂无记录');
   $('filterAlerts').setAttribute('aria-pressed', String(alertsOnly));
   $('filterChats').setAttribute('aria-pressed', String(!alertsOnly && group === 'chat'));
   $('filterOther').setAttribute('aria-pressed', String(!alertsOnly && group === 'other'));
@@ -756,16 +738,22 @@ function render(d) {
     const freshHttp = big.filter(event => event.id > lastId);
     const freshWs = wsAlerts.filter(event => event.id > lastId);
     if (freshHttp.length || freshWs.length) {
-      if (notificationsSupported && Notification.permission === 'granted') {
+      if (notificationsSupported && notificationsEnabled && Notification.permission === 'granted') {
         const event = freshHttp[0] || freshWs[0];
-        new Notification(t('Codex 请求提醒'), {
-          body: sessionTitle(current.get(event.thread)) + ' · ' + (freshHttp.length ? t('{0} HTTP 请求过大', mib(event.compressed)) : t('WebSocket 非增量'))
-        });
+        try {
+          new Notification(t('Codex 请求提醒'), {
+            body: sessionTitle(current.get(event.thread)) + ' · ' + (freshHttp.length ? t('{0} HTTP 请求过大', mib(event.compressed)) : t('WebSocket 非增量'))
+          });
+        } catch {
+          notificationMessage = '系统通知发送失败，请检查浏览器设置。';
+          setNotificationPreference(false);
+        }
       }
     }
   }
   lastId = Math.max(lastId, d.max_event_id);
   initialized = true;
+  if (readFailed) renderReadState();
 }
 async function readStatus(){
   if(sidebar)return window.readLocalMonitorStatus();
@@ -774,18 +762,71 @@ async function readStatus(){
   return response.json();
 }
 let readFailed = false;
-let notificationLabel = notificationsSupported && Notification.permission === 'granted'
-  ? '系统通知已启用' : '启用系统通知';
+const notificationKey = 'codex-request-monitor.notifications';
+let notificationsEnabled = notificationsSupported && Notification.permission === 'granted';
+let notificationBusy = false, notificationMessage = '', notificationRevision = 0;
+try {
+  const saved = localStorage.getItem(notificationKey);
+  if (saved === 'on' || saved === 'off') notificationsEnabled = saved === 'on';
+} catch {
+  notificationsEnabled = false;
+  notificationMessage = '无法读取通知偏好，当前已关闭。';
+}
+
+function renderNotificationToggle() {
+  const enabled = notificationsSupported && notificationsEnabled && Notification.permission === 'granted';
+  $('notify').textContent = t(enabled ? '系统通知：开' : '系统通知：关');
+  $('notify').setAttribute('aria-checked', String(enabled));
+  $('notify').disabled = notificationBusy || !notificationsSupported;
+  $('notify').title = t(notificationMessage || (!notificationsSupported ? '浏览器不支持通知'
+    : Notification.permission === 'denied' ? '通知已被浏览器拒绝，请在浏览器设置中允许。'
+    : enabled ? '关闭系统通知' : '开启系统通知'));
+}
+
+function setNotificationPreference(enabled) {
+  notificationsEnabled = enabled;
+  try { localStorage.setItem(notificationKey, enabled ? 'on' : 'off'); }
+  catch { notificationMessage = '无法保存通知偏好，刷新后可能重置。'; }
+  renderNotificationToggle();
+}
+
+async function toggleSystemNotifications() {
+  if (!notificationsSupported || notificationBusy) return;
+  const revision = notificationRevision;
+  notificationBusy = true;
+  notificationMessage = '';
+  renderNotificationToggle();
+  try {
+    if (notificationsEnabled && Notification.permission === 'granted') setNotificationPreference(false);
+    else {
+      const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+      if (revision === notificationRevision) setNotificationPreference(permission === 'granted');
+    }
+  } catch {
+    if (revision === notificationRevision) {
+      notificationMessage = '无法启用通知，请检查浏览器设置。';
+      setNotificationPreference(false);
+    }
+  } finally {
+    notificationBusy = false;
+    renderNotificationToggle();
+  }
+}
+
+window.addEventListener('storage', event => {
+  if (event.key !== notificationKey) return;
+  notificationRevision++;
+  notificationsEnabled = event.newValue === 'on';
+  notificationMessage = '';
+  renderNotificationToggle();
+});
 
 function renderReadState() {
   $('live').textContent = t(readFailed ? '读取失败' : latest ? '正在监控' : '正在连接');
   $('dot').classList.toggle('bad', readFailed);
   if (!readFailed) return;
-  $('overview').dataset.alert = 'true';
-  $('overviewTitle').textContent = t('暂时无法读取 Codex 日志');
-  $('overviewDetail').textContent = t('上次读取的数据仍可在下方查看。');
-  $('overviewDetail').hidden = !latest;
-  $('filterAlerts').hidden = true;
+  $('filterAlerts').textContent = t('日志读取失败');
+  $('filterAlerts').disabled = true;
 }
 
 async function refresh() {
@@ -793,8 +834,8 @@ async function refresh() {
   refreshing = true;
   try {
     latest = await readStatus();
-    render(latest);
     readFailed = false;
+    render(latest);
   } catch {
     readFailed = true;
   } finally {
@@ -827,32 +868,24 @@ $('openTemporaryProxyPage').onclick = async () => {
     renderNetwork();
   }
 };
-$('notify').onclick = async () => {
-  if (!notificationsSupported) notificationLabel = '浏览器不支持通知';
-  else {
-    const permission = await Notification.requestPermission();
-    notificationLabel = permission === 'granted' ? '系统通知已启用'
-      : permission === 'denied' ? '通知已被浏览器拒绝' : '通知未启用';
-  }
-  $('notify').textContent = t(notificationLabel);
-};
+$('notify').onclick = toggleSystemNotifications;
 threshold.oninput = () => { if (latest && threshold.validity.valid && threshold.value) render(latest); };
 language.onchange = () => {
   locale = language.value;
   try { localStorage.setItem(languageKey, locale); } catch {}
   translateLabels();
-  $('notify').textContent = t(notificationLabel);
+  renderNotificationToggle();
   if (latest) render(latest);
   renderReadState();
   renderNetwork();
 };
 translateLabels();
 renderTemporaryProxy();
-$('notify').textContent = t(notificationLabel);
+renderNotificationToggle();
 refresh();
 checkNetwork();
-window.addEventListener('focus', checkNetwork);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) checkNetwork(); });
+window.addEventListener('focus', () => { renderNotificationToggle(); checkNetwork(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { renderNotificationToggle(); checkNetwork(); } });
 setInterval(refresh, 5000);
 setInterval(() => { if (!document.hidden) checkNetwork(); }, 15000);
 </script></body></html>

@@ -9,7 +9,7 @@ from monitor import ROOT, collect
 
 
 TITLE = 'Codex Request Monitor'
-VERSION = '0.1.0-beta'
+VERSION = '0.2.0-beta'
 RESOURCE_URI = 'ui://codex-request-monitor/dashboard'
 RESOURCE = {'uri': RESOURCE_URI, 'name': TITLE, 'mimeType': 'text/html;profile=mcp-app'}
 CSP = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; form-action 'none'; connect-src 'none'; base-uri 'none'"

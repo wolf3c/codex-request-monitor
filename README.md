@@ -39,14 +39,14 @@ Codex 会话连接监控按对话展示传输方式、请求体大小和已记�
 
 ## 安装与使用
 
-macOS 测试版，需要 Python 3.9+。插件在内置 `codex-cli 0.166.0-alpha.6` 的桌面版上开发。`v0.2.1-beta` 包含会话标题直接跳转、中英文面板、最近请求模型及基于日志证据的增量状态。面板默认跟随浏览器语言，可在右上角切换简体中文和英文。
+macOS 测试版，需要 Python 3.9+。插件在内置 `codex-cli 0.166.0-alpha.6` 的桌面版上开发。`v0.3.0-beta` 新增自动网络诊断、实际代理路由判定、临时代理启动和可记忆的通知开关，并精简了会话提醒入口。面板默认跟随浏览器语言，可在右上角切换简体中文和英文。
 
 ### 1. 终端安装（推荐）
 
 需要 Codex 桌面版和支持 `codex plugin` 的 CLI。
 
 ```sh
-codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.2.1-beta
+codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.3.0-beta
 codex plugin add codex-request-monitor@codex-request-monitor-marketplace
 ```
 
@@ -59,7 +59,7 @@ codex plugin add codex-request-monitor@codex-request-monitor-marketplace
 
 先检查 Python 3.9+ 和 codex plugin 命令是否可用，再执行：
 
-codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.2.1-beta
+codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.3.0-beta
 codex plugin add codex-request-monitor@codex-request-monitor-marketplace
 
 安装后验证插件是否已安装，并告诉我如何从左侧「⋯」打开。
@@ -69,7 +69,7 @@ codex plugin add codex-request-monitor@codex-request-monitor-marketplace
 ### 3. 桌面安装（无需终端）
 
 1. 打开 **Plugins → Add plugin marketplace**。
-2. **Source** 填 `wolf3c/codex-request-monitor`，**Git ref** 填 `v0.2.1-beta`。
+2. **Source** 填 `wolf3c/codex-request-monitor`，**Git ref** 填 `v0.3.0-beta`。
 3. 点击 **Add marketplace**，找到 **Codex Request Monitor**，点击 **Install**。
 
 ### 打开已安装的面板
@@ -98,9 +98,7 @@ python3 plugins/codex-request-monitor/monitor.py
 
 实际连接判定会只读核对 Codex 进程的 TCP 连接与 Clash/Mihomo 本地 Unix 控制接口中的连接、出站类型和双向传输记录。确认经过代理显示「代理已生效，无需操作。」；确认 DIRECT 显示「代理未生效，建议开启临时代理。」；混合路由、无活动连接、权限不足或不支持的代理软件显示「待确认」。结果仅代表采样到的 Codex 服务连接，不代表每个对话或增量传输状态。
 
-### 临时代理启动（当前源码）
-
-网络诊断和临时代理启动尚未包含在上方固定的 `v0.2.1-beta` 发布包中。
+### 临时代理启动
 
 页面会自动检查并显示「使用临时代理启动 Codex」按钮；已运行或条件未确认时置灰，并在下方显示原因。侧栏入口会打开独立的外部浏览器网页，方便退出 Codex 后继续操作。
 

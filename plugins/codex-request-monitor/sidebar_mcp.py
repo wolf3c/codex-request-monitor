@@ -11,7 +11,7 @@ from monitor import ROOT, collect, collect_network, open_temporary_proxy_page
 
 
 TITLE = 'Codex Request Monitor'
-VERSION = '0.2.1-beta'
+VERSION = '0.3.0-beta'
 RESOURCE_URI = 'ui://codex-request-monitor/dashboard'
 RESOURCE = {'uri': RESOURCE_URI, 'name': TITLE, 'mimeType': 'text/html;profile=mcp-app'}
 CSP = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; form-action 'none'; connect-src 'none'; base-uri 'none'"

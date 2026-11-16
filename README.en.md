@@ -39,14 +39,14 @@ Codex Session Connection Monitor shows transport, request body sizes, and record
 
 ## Install and use
 
-The macOS beta requires Python 3.9 or later. `v0.2.1-beta` includes direct chat navigation from session titles, the bilingual dashboard, latest requested model, and evidence-based incremental state. The dashboard opens in Chinese for Chinese locales and in English otherwise. Use the language selector to switch at any time. Session titles stay in their original language.
+The macOS beta requires Python 3.9 or later. `v0.3.0-beta` adds automatic network diagnostics, observed proxy routes, temporary proxy launch, persistent notification controls, and a compact alert filter beside Sessions. The dashboard opens in Chinese for Chinese locales and in English otherwise. Use the language selector to switch at any time. Session titles stay in their original language.
 
 ### 1. Terminal installation (recommended)
 
 Requires Codex desktop and a Codex CLI with the `plugin` command.
 
 ```sh
-codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.2.1-beta
+codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.3.0-beta
 codex plugin add codex-request-monitor@codex-request-monitor-marketplace
 ```
 
@@ -59,7 +59,7 @@ Please install the Codex Request Monitor plugin on this computer.
 
 First check that Python 3.9+ and the codex plugin command are available, then run:
 
-codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.2.1-beta
+codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.3.0-beta
 codex plugin add codex-request-monitor@codex-request-monitor-marketplace
 
 After installation, verify that the plugin is installed and explain how to open it from the left sidebar's ⋯ menu.
@@ -69,7 +69,7 @@ If additional permissions are needed, explain why. Ask for my consent before res
 ### 3. Install from the desktop app
 
 1. Open **Plugins → Add plugin marketplace**.
-2. Set **Source** to `wolf3c/codex-request-monitor` and **Git ref** to `v0.2.1-beta`.
+2. Set **Source** to `wolf3c/codex-request-monitor` and **Git ref** to `v0.3.0-beta`.
 3. Click **Add marketplace**, find the monitor, and click **Install**. The plugin is listed as **Codex Request Monitor**.
 
 ### Open the installed dashboard
@@ -97,9 +97,7 @@ python3 plugins/codex-request-monitor/monitor.py
 
 Observed-route checks match Codex TCP sockets with connection records, outbound adapter types, and bidirectional transfer counters from an existing local Clash/Mihomo Unix API. Confirmed proxy traffic shows “Proxy is active. No action needed.”; confirmed DIRECT traffic shows “Proxy is inactive. Temporary proxy recommended.” Mixed routes, no active connections, missing permissions, and unsupported proxy apps show “Pending confirmation”. This covers sampled Codex service connections, not every chat or incremental transmission.
 
-### Temporary proxy launch (current source)
-
-Network diagnostics and temporary proxy launch are not included in the pinned `v0.2.1-beta` release above.
+### Temporary proxy launch
 
 The page automatically checks conditions and shows “Launch Codex with temporary proxy”. The button is disabled when Codex is running or conditions are unconfirmed, with a short reason below. The sidebar entry opens the standalone page in your external browser so it remains usable after you quit Codex.
 

@@ -1,14 +1,14 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "codex-request-monitor",
-  "version": "0.2.1-beta",
-  "description": "Open a local, read-only request monitor from the Codex sidebar.",
+  "version": "0.3.0-beta",
+  "description": "Monitor local Codex connections and inspect proxy settings from the sidebar.",
   "extensions": {
     "com.openai": {
       "requires_local_executor": true,
       "interface": {
         "displayName": "Codex Request Monitor",
-        "shortDescription": "View local Codex request sizes and transport.",
+        "shortDescription": "View connection routes, request sizes, and proxy diagnostics.",
         "category": "Productivity"
       }
     }

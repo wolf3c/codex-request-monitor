@@ -90,7 +90,7 @@ python3 plugins/codex-request-monitor/monitor.py
 - Expand a session to see up to ten recorded events and the 24-hour sum of logged compressed HTTP request bodies. This sum reflects prepared request bodies. A failed request may have sent fewer bytes.
 - Incremental state shows “Incremental” or “Non-incremental” only with explicit evidence for the latest request; insufficient evidence appears as `-`. Missing WebSocket or download sizes also appear as `-`.
 - “Latest requested model” shows only the latest request’s logged model ID, or `-` when missing. It does not prove which model the server actually executed.
-- The HTTP session details include a manual WebSocket retry guide. Archiving may interrupt the session and its subtasks.
+- Click a session title to open its Codex chat directly; an underline and external-link icon appear on hover. Use the arrow on the left to expand or collapse details. HTTP session details also include a manual WebSocket retry guide. Archiving may interrupt the session and its subtasks.
 
 ## Privacy and compatibility
 
@@ -101,6 +101,7 @@ The monitor reads local Codex SQLite diagnostics and sends no monitoring data to
 ```sh
 cd plugins/codex-request-monitor
 python3 -B -m unittest
+node --test test_sidebar_ui.cjs
 ```
 
 ## How it works

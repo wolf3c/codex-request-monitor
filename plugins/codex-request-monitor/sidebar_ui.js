@@ -52,4 +52,14 @@
     if (result?.isError || !status) throw new Error('Unable to read local Codex logs');
     return status;
   };
+
+  window.openLocalMonitorLink = async url => {
+    if (closed || !connected) throw new Error('Local plugin view is disconnected');
+    if (!/^codex:\/\/threads\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(url)) {
+      throw new Error('Invalid chat link');
+    }
+    await connected;
+    const result = await request('ui/open-link', {url});
+    if (result?.isError) throw new Error('Unable to open chat');
+  };
 })();

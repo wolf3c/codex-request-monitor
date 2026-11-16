@@ -91,7 +91,7 @@ python3 plugins/codex-request-monitor/monitor.py
 - 压缩后大小来自本机 HTTP 日志，代表准备好的请求体大小。请求可能失败，数字不等同于成功上传的流量、VPN 账单或 Token 用量。
 - 增量状态按最近一次请求的明确日志证据显示为「增量」或「非增量」，证据不足显示 `-`。WebSocket 大小和下载字节数缺少可靠记录时也显示 `-`。
 - 「最近请求模型」只显示最近一次请求日志中的模型 ID；没有记录时显示 `-`。它不能证明服务端实际执行了哪个模型。
-- HTTP 会话可打开手动重试指南。归档由用户在 Codex 中操作，可能中断会话和子任务。新请求的传输结果只有在日志证据足够时才会显示。
+- 点击会话标题直接打开对应 Codex 会话，悬停时显示链接下划线和外链图标；左侧箭头用于展开或收起明细。HTTP 会话明细中还可打开手动重试指南。归档由用户在 Codex 中操作，可能中断会话和子任务。新请求的传输结果只有在日志证据足够时才会显示。
 
 ## 本机数据与兼容性
 
@@ -104,6 +104,7 @@ python3 plugins/codex-request-monitor/monitor.py
 ```sh
 cd plugins/codex-request-monitor
 python3 -B -m unittest
+node --test test_sidebar_ui.cjs
 ```
 
 ## 工作原理

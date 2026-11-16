@@ -1,9 +1,78 @@
 import sqlite3, tempfile, time, unittest
+import json
+import monitor
 from pathlib import Path
 from contextlib import closing
 from monitor import collect
+from monitor import Handler
+from http.client import HTTPConnection
+from http.server import ThreadingHTTPServer
+from threading import Thread
+from unittest.mock import patch
 
 class MonitorTest(unittest.TestCase):
+ def test_temporary_launch_requires_same_origin_token_and_rechecks_server_state(self):
+  self.assertTrue(hasattr(monitor, 'MonitorServer'), 'Protected launch endpoint is not implemented')
+  server = monitor.MonitorServer(('127.0.0.1', 0), Handler)
+  worker = Thread(target=server.serve_forever, daemon=True)
+  worker.start()
+  origin = 'http://127.0.0.1:' + str(server.server_port)
+  try:
+   plan = {'ready': True, 'reason': 'app_stopped', 'proxy': 'http://127.0.0.1:7890'}
+   with patch('monitor.collect_network', return_value={'temporary_proxy': plan}), patch('monitor.launch_temporary_proxy', return_value={'ready': False, 'reason': 'activity_unconfirmed'}) as launch:
+    with closing(HTTPConnection('127.0.0.1', server.server_port)) as client:
+     client.request('GET', '/api/network')
+     response = client.getresponse()
+     self.assertEqual(response.getheader('X-Frame-Options'), 'DENY')
+     data = json.loads(response.read())
+     token = data['temporary_proxy']['action_token']
+     client.request('GET', '/health/temporary-proxy')
+     response = client.getresponse()
+     self.assertEqual(response.status, 200)
+     self.assertEqual(response.read(), b'codex-request-monitor temporary-proxy-v1')
+     body = json.dumps({'proxy': 'http://127.0.0.1:7890'})
+     headers = {'Content-Type': 'application/json', 'Origin': origin, 'X-Codex-Monitor-Action': token}
+     for changed in [{'Origin':'https://remote.invalid'}, {'X-Codex-Monitor-Action':'wrong'}, {'Content-Type':'text/plain'}]:
+      client.request('POST', '/api/temporary-proxy', body, {**headers, **changed})
+      response = client.getresponse()
+      self.assertIn(response.status, [400, 403]); response.read()
+     launch.assert_not_called()
+     client.request('POST', '/api/temporary-proxy', body, headers)
+     response = client.getresponse()
+     self.assertEqual(response.status, 409)
+     self.assertEqual(json.loads(response.read())['reason'], 'activity_unconfirmed')
+     launch.assert_called_once_with('http://127.0.0.1:7890')
+     client.request('POST', '/api/temporary-proxy', body, headers)
+     response = client.getresponse()
+     self.assertEqual(response.status, 403); response.read()
+     launch.assert_called_once()
+  finally:
+   server.shutdown(); server.server_close(); worker.join()
+
+ def test_network_endpoint_is_on_demand_loopback_guarded_and_not_cached(self):
+  server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+  worker = Thread(target=server.serve_forever, daemon=True)
+  worker.start()
+  try:
+   with patch('monitor.collect_network', return_value={'codex': {'status': 'unconfirmed'}}) as inspect:
+    with closing(HTTPConnection('127.0.0.1', server.server_port)) as client:
+     client.request('GET', '/health')
+     client.getresponse().read()
+     inspect.assert_not_called()
+     client.request('GET', '/api/network', headers={'Host': 'remote.invalid'})
+     self.assertEqual(client.getresponse().status, 403)
+     inspect.assert_not_called()
+     client.request('GET', '/api/network')
+     response = client.getresponse()
+     self.assertEqual(response.status, 200)
+     self.assertEqual(response.getheader('Cache-Control'), 'no-store')
+     self.assertIn(b'unconfirmed', response.read())
+     inspect.assert_called_once_with()
+  finally:
+   server.shutdown()
+   server.server_close()
+   worker.join()
+
  def test_incremental_evidence_matches_only_the_latest_generation(self):
   with tempfile.TemporaryDirectory() as temp:
    logs, state = Path(temp) / 'logs', Path(temp) / 'state'

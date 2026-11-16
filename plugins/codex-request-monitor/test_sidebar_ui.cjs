@@ -13,7 +13,10 @@ function host(openResult = {}) {
     postMessage(message) {
       calls.push(message);
       if (!message.id) return;
-      const result = message.method === 'tools/call' ? {_meta: {status: {threads: []}}}
+      const result = message.method === 'tools/call' ? message.params.name === 'read_network_diagnostics'
+        ? {_meta: {network: {codex: {status: 'unconfirmed'}}}}
+        : message.params.name === 'open_temporary_proxy_page' ? {_meta: {external_opened: true}}
+        : {_meta: {status: {threads: []}}}
         : message.method === 'ui/open-link' ? openResult : {};
       receive({source: parent, origin: 'https://host.test', data: {jsonrpc: '2.0', id: message.id, result}});
     },
@@ -56,6 +59,26 @@ test('only exact chat links are sent to the host', async () => {
   assert.equal(calls.length, before);
 });
 
+test('network inspection initializes independently and calls only its private tool', async () => {
+  const {window, calls} = host();
+  const result = await window.readLocalMonitorNetwork();
+  assert.equal(result.codex.status, 'unconfirmed');
+  const tools = calls.filter(call => call.method === 'tools/call');
+  assert.equal(tools.length, 1);
+  assert.equal(tools[0].params.name, 'read_network_diagnostics');
+  assert.deepEqual(JSON.parse(JSON.stringify(tools[0].params.arguments)), {});
+});
+
+test('temporary proxy entry opens only the external page, never a restart tool', async () => {
+  const {window, calls} = host();
+  assert.equal(typeof window.openTemporaryProxyPage, 'function');
+  await window.openTemporaryProxyPage();
+  const tools = calls.filter(call => call.method === 'tools/call');
+  assert.equal(tools.length, 1);
+  assert.equal(tools[0].params.name, 'open_temporary_proxy_page');
+  assert.deepEqual(JSON.parse(JSON.stringify(tools[0].params.arguments)), {});
+});
+
 test('a navigation failure remains visible when polling replaces the title row', async () => {
   const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
   const start = html.indexOf('function bindChatLink(');
@@ -76,4 +99,16 @@ test('a navigation failure remains visible when polling replaces the title row',
   await opening;
   assert.equal(stopped, true);
   assert.equal(currentError.hidden, false);
+});
+
+test('proxy summary uses only observed route evidence and the three approved messages', () => {
+  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+  const start = html.indexOf('function proxyRouteStatus(');
+  const end = html.indexOf('\nfunction ', start + 1);
+  const describe = vm.runInNewContext(html.slice(start, end) + '; proxyRouteStatus');
+  assert.equal(describe({route: {status: 'proxied'}}), '代理已生效，无需操作。');
+  assert.equal(describe({route: {status: 'direct'}}), '代理未生效，建议开启临时代理。');
+  assert.equal(describe({route: {status: 'unconfirmed'}}), '待确认');
+  assert.equal(describe({codex: {status: 'configured'}, tun: {status: 'detected'}}), '待确认');
+  assert.equal(describe(null), '待确认');
 });

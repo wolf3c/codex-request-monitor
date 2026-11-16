@@ -1,10 +1,25 @@
 import unittest
+from http.client import HTTPException
 from unittest.mock import patch
 
 from sidebar_mcp import RESOURCE_URI, dispatch
 
 
 class SidebarTest(unittest.TestCase):
+    def test_sidebar_exposes_external_page_entry_but_no_restart_tool(self):
+        tools = dispatch('tools/list', {})['tools']
+        names = [tool['name'] for tool in tools]
+        self.assertIn('open_temporary_proxy_page', names)
+        self.assertNotIn('start_temporary_proxy', names)
+        with patch('sidebar_mcp.open_temporary_proxy_page') as opener:
+            dispatch('tools/call', {'name':'open_temporary_proxy_page','arguments':{}})
+            opener.assert_called_once_with()
+            with self.assertRaises(ValueError):
+                dispatch('tools/call', {'name':'open_temporary_proxy_page','arguments':{'url':'https://remote.invalid'}})
+            opener.assert_called_once_with()
+        with patch('sidebar_mcp.open_temporary_proxy_page', side_effect=HTTPException):
+            self.assertTrue(dispatch('tools/call', {'name':'open_temporary_proxy_page','arguments':{}})['isError'])
+
     def test_entrypoint_opens_without_reading_logs(self):
         tools = {tool['name']: tool for tool in dispatch('tools/list', {})['tools']}
         opener = tools['open_request_monitor']
@@ -37,3 +52,18 @@ class SidebarTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 dispatch('resources/read', {'uri': 'file:///other'})
             collect.assert_not_called()
+
+    def test_network_diagnostics_are_explicit_private_and_take_no_arguments(self):
+        fixture = {'codex': {'status': 'unconfirmed'}, 'local_proxies': []}
+        with patch('sidebar_mcp.collect_network', return_value=fixture) as inspect:
+            dispatch('resources/read', {'uri': RESOURCE_URI})
+            dispatch('tools/list', {})
+            with patch('sidebar_mcp.collect', return_value={'threads': []}):
+                dispatch('tools/call', {'name': 'read_request_monitor', 'arguments': {}})
+            inspect.assert_not_called()
+            result = dispatch('tools/call', {'name': 'read_network_diagnostics', 'arguments': {}})
+            self.assertEqual(result, {'content': [], '_meta': {'network': fixture}})
+            inspect.assert_called_once_with()
+            with self.assertRaises(ValueError):
+                dispatch('tools/call', {'name': 'read_network_diagnostics', 'arguments': {'proxy': 'remote.invalid'}})
+            inspect.assert_called_once_with()

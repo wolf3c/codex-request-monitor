@@ -38,7 +38,7 @@
     else call.resolve(data.result);
   });
 
-  window.readLocalMonitorStatus = async () => {
+  async function initialize() {
     if (closed || window.parent === window) throw new Error('Local plugin view is disconnected');
     connected ??= request('ui/initialize', {
       protocolVersion: '2026-01-26',
@@ -47,10 +47,28 @@
     }).then(() => send({method: 'ui/notifications/initialized', params: {}}))
       .catch(error => { connected = undefined; throw error; });
     await connected;
+  }
+
+  window.readLocalMonitorStatus = async () => {
+    await initialize();
     const result = await request('tools/call', {name: 'read_request_monitor', arguments: {}});
     const status = result?._meta?.status;
     if (result?.isError || !status) throw new Error('Unable to read local Codex logs');
     return status;
+  };
+
+  window.readLocalMonitorNetwork = async () => {
+    await initialize();
+    const result = await request('tools/call', {name: 'read_network_diagnostics', arguments: {}});
+    const network = result?._meta?.network;
+    if (result?.isError || !network) throw new Error('Unable to inspect local network configuration');
+    return network;
+  };
+
+  window.openTemporaryProxyPage = async () => {
+    await initialize();
+    const result = await request('tools/call', {name: 'open_temporary_proxy_page', arguments: {}});
+    if (result?.isError || !result?._meta?.external_opened) throw new Error('Unable to open external browser');
   };
 
   window.openLocalMonitorLink = async url => {

@@ -2,9 +2,10 @@
 
 双击「启动监控.command」可打开本机浏览器版；按 Control-C 停止。
 
-浏览器与桌面面板只展示本机日志能证明的数据。WebSocket 大小和下载量缺少记录时显示 -。
+传输与请求大小以本机日志为据；网络诊断另核对本机配置和实际连接。WebSocket 大小和下载量缺少记录时显示 -。
 
 English guide: https://github.com/wolf3c/codex-request-monitor/blob/main/README.en.md#install-and-use
 
 Open the dashboard by double-clicking 启动监控.command. Press Control-C to stop.
 Use the language selector in the dashboard to switch between English and Simplified Chinese.
+Transport and request sizes use local logs. Network diagnostics also checks local configuration and observed connections.

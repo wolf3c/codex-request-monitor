@@ -86,11 +86,27 @@ python3 plugins/codex-request-monitor/monitor.py
 
 ## Read the dashboard
 
+- The proxy status below the launch button expands into diagnostic details. Opening or returning to the page, and every 15 seconds while visible, automatically inspects launch proxy variables in Codex-related macOS processes, candidate proxy variable names in the configuration directory’s `.env` file, system proxy configuration, TUN interfaces, and configured loopback proxy ports. It does not change settings, run proxy launch scripts, or access external services. Configuration, TCP reachability, and TUN interfaces do not prove actual request routing; insufficient evidence is shown as “Unconfirmed”.
 - The overview shows large HTTP requests and active non-incremental WebSocket alerts from the last five minutes. Expand the 24-hour summary for historical counts.
 - Expand a session to see up to ten recorded events and the 24-hour sum of logged compressed HTTP request bodies. This sum reflects prepared request bodies. A failed request may have sent fewer bytes.
 - Incremental state shows “Incremental” or “Non-incremental” only with explicit evidence for the latest request; insufficient evidence appears as `-`. Missing WebSocket or download sizes also appear as `-`.
 - “Latest requested model” shows only the latest request’s logged model ID, or `-` when missing. It does not prove which model the server actually executed.
 - Click a session title to open its Codex chat directly; an underline and external-link icon appear on hover. Use the arrow on the left to expand or collapse details. HTTP session details also include a manual WebSocket retry guide. Archiving may interrupt the session and its subtasks.
+
+Observed-route checks match Codex TCP sockets with connection records, outbound adapter types, and bidirectional transfer counters from an existing local Clash/Mihomo Unix API. Confirmed proxy traffic shows “Proxy is active. No action needed.”; confirmed DIRECT traffic shows “Proxy is inactive. Temporary proxy recommended.” Mixed routes, no active connections, missing permissions, and unsupported proxy apps show “Pending confirmation”. This covers sampled Codex service connections, not every chat or incremental transmission.
+
+### Temporary proxy launch (current source)
+
+Network diagnostics and temporary proxy launch are not included in the pinned `v0.2.1-beta` release above.
+
+The page automatically checks conditions and shows “Launch Codex with temporary proxy”. The button is disabled when Codex is running or conditions are unconfirmed, with a short reason below. The sidebar entry opens the standalone page in your external browser so it remains usable after you quit Codex.
+
+- **This launch only:** detects a local HTTP/mixed proxy from system settings and starts Codex with child-process environment variables. It does not modify `.env`, shell configuration, or the system proxy. After fully quitting this instance, a normal launch uses your original configuration.
+- **Protects existing tasks:** idleness of every chat and subtask cannot currently be established reliably. Automatic restart is blocked whenever the app or its background processes are running. Finish tasks and quit the app yourself first. Missing process evidence also blocks launch.
+- **Preserves user configuration:** an existing `.env` conservatively blocks launch because its overrides cannot yet be ruled out precisely. The tool does not ask you to delete or rewrite it. Ambiguous apps, missing local proxies, and `NO_PROXY` exclusions covering the Codex service also block launch.
+- **Revalidates before launch:** checks an HTTP CONNECT tunnel to `chatgpt.com:443`, then checks the app and proxy configuration again. Only the fixed connection target is sent, without account credentials or chat content. This does not prove WebSocket availability.
+
+“Launch requested” only means the launch command was submitted. Use subsequent real session logs to verify WebSocket and incremental transfer. If the outcome is unconfirmed, check the app state before trying again.
 
 ## Privacy and compatibility
 

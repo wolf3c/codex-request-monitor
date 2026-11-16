@@ -36,6 +36,16 @@ button:hover { background: #f2e7d9; }
 .summary-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-top: 10px; color: var(--muted); font-size: 12px; }
 .summary-meta summary { cursor: pointer; }
 .summary-history { margin-top: 5px; }
+.network-diagnostics { margin: 8px 0 16px; }
+.network-diagnostics summary { cursor: pointer; color: var(--muted); }
+.network-diagnostics summary:hover { text-decoration: underline; text-underline-offset: 3px; }
+.network-results { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 10px 16px; margin: 14px 0; }
+.network-results dt { font-weight: 600; }
+.network-results dd { margin: 0; overflow-wrap: anywhere; }
+.temporary-proxy { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.temporary-proxy p { margin: 8px 0; }
+button:disabled { cursor: not-allowed; opacity: .65; }
+@media (max-width: 600px) { .network-results { grid-template-columns: minmax(0, 1fr); gap: 5px; } .network-results dt { margin-top: 8px; } }
 .warning, .size-alert { color: var(--warning); font-weight: 700; }
 .title { margin: 15px 0 9px; }
 .title h2 { margin: 0; font-size: 16px; }
@@ -89,7 +99,7 @@ tr:last-child td { border-bottom: 0; }
 <body>
 <main class="wrap">
   <header>
-    <div><h1 data-i18n>Codex 请求监控</h1><p class="sub" data-i18n>本机只读 · 最近 24 小时</p></div>
+    <div><h1 data-i18n>Codex 请求监控</h1><p class="sub" data-i18n>日志只读 · 最近 24 小时</p></div>
     <div class="tools">
       <label><span data-i18n>语言</span>
         <select id="language"><option value="zh-CN">简体中文</option><option value="en">English</option></select>
@@ -115,6 +125,27 @@ tr:last-child td { border-bottom: 0; }
       </details>
     </div>
   </section>
+  <div class="temporary-proxy" id="temporaryProxy">
+    <button id="startTemporaryProxy" type="button" disabled aria-describedby="proxyReadiness" data-i18n>使用临时代理启动 Codex</button>
+    <p class="sub" id="proxyActionResult" role="status" hidden></p>
+    <details class="network-diagnostics" id="networkDiagnostics">
+      <summary aria-labelledby="proxyReadiness"><span id="proxyReadiness" role="status" data-i18n>待确认</span></summary>
+      <p class="sub" data-i18n>自动检查本机配置，不修改设置。代理配置和端口可连接不代表实际请求经过代理。</p>
+      <dl class="network-results">
+        <dt data-i18n>实际连接</dt><dd id="networkRoute" data-i18n>待确认</dd>
+        <dt data-i18n>启动条件</dt><dd id="proxyCondition" data-i18n>待确认</dd>
+        <dt data-i18n>Codex 代理配置</dt><dd id="networkCodex" data-i18n>未确认</dd>
+        <dt data-i18n>配置文件 .env</dt><dd id="networkDotenv" data-i18n>未确认</dd>
+        <dt data-i18n>本地代理可用性</dt><dd id="networkLocal" data-i18n>未确认</dd>
+        <dt data-i18n>系统代理</dt><dd id="networkSystem" data-i18n>未确认</dd>
+        <dt data-i18n>TUN 情况</dt><dd id="networkTun" data-i18n>未确认</dd>
+      </dl>
+      <button id="checkNetwork" type="button" data-i18n>检查网络</button>
+      <span id="networkChecked" class="muted" role="status"></span>
+      <button id="openTemporaryProxyPage" type="button" hidden data-i18n>在外部浏览器中操作</button>
+      <p class="sub" id="externalProxyResult" role="status"></p>
+    </details>
+  </div>
   <div class="title">
     <h2 data-i18n>会话记录</h2>
     <div class="filters" role="group" data-i18n-label aria-label="会话筛选">
@@ -146,8 +177,61 @@ tr:last-child td { border-bottom: 0; }
 <script>
 const $=id=>document.getElementById(id), threshold=$('threshold');
 const english = {
+  "代理已生效，无需操作。": "Proxy is active. No action needed.",
+  "代理未生效，建议开启临时代理。": "Proxy is inactive. Temporary proxy recommended.",
+  "待确认": "Pending confirmation",
+  "实际连接": "Observed connections",
+  "启动条件": "Launch conditions",
+  "Codex 仍在运行，请完成任务并退出后启动。": "Codex is still running. Finish your tasks and quit before launching.",
+  "已核对 {0} 条连接：代理 {1}，直连 {2}，待确认 {3}。": "Matched {0} connections: {1} proxied, {2} direct, {3} unconfirmed.",
   "Codex 请求监控": "Codex Request Monitor",
-  "本机只读 · 最近 24 小时": "Local, read-only · Last 24 hours",
+  "使用临时代理启动 Codex": "Launch Codex with temporary proxy",
+  "在外部浏览器中操作": "Open in external browser",
+  "正在验证并启动…": "Verifying and launching…",
+  "仅支持 macOS。": "Only macOS is supported.",
+  "无法唯一确认 Codex 应用，禁止启动。": "Unable to uniquely identify the Codex app; launch is blocked.",
+  "启动条件未确认，暂不可用。": "Launch conditions unconfirmed; unavailable for now.",
+  "正在启动，请稍候。": "Launch pending; please wait.",
+  "已有 .env 配置，暂不支持临时启动。": "An .env configuration exists; temporary launch is unavailable.",
+  "NO_PROXY 排除了 Codex 服务，暂不可用。": "NO_PROXY excludes Codex; launch is unavailable.",
+  "未确认本地 HTTP/mixed 代理，暂不可用。": "Local HTTP/mixed proxy unconfirmed; launch is unavailable.",
+  "可临时代理启动，仅本次生效，不修改配置。": "Ready to launch with a temporary proxy; this session only, no configuration changes.",
+  "配置已变化，请刷新后重试。": "Configuration changed; refresh before retrying.",
+  "HTTP 代理隧道验证失败，未启动 Codex。": "HTTP proxy tunnel validation failed; Codex was not launched.",
+  "启动失败，请检查应用状态。": "Launch failed; check the app state.",
+  "已发起临时代理启动，连接结果请查看会话记录。": "Temporary proxy launch requested; check session records for connection results.",
+  "启动结果未确认，请先检查 Codex，勿重复启动。": "Launch outcome unconfirmed; check Codex before retrying.",
+  "已在浏览器打开；完成任务并退出 Codex 后可操作。": "Opened in your browser; finish your tasks and quit Codex before launching.",
+  "无法打开外部浏览器；未执行启动操作。": "Unable to open the external browser; no launch was performed.",
+  "自动检查本机配置，不修改设置。代理配置和端口可连接不代表实际请求经过代理。": "Checks local configuration automatically without changing settings. Proxy configuration and reachable ports do not prove that requests use the proxy.",
+  "Codex 代理配置": "Codex proxy configuration",
+  "配置文件 .env": ".env configuration file",
+  "发现候选代理变量行（未验证语法）": "Candidate proxy assignment lines found (syntax not validated)",
+  "文件中未发现代理变量赋值": "No proxy variable assignments found in file",
+  "未找到 .env 文件": "No .env file found",
+  "检查插件使用的 Codex 配置目录；只记录变量名，是否被当前 Codex 加载未确认。": "Inspects the plugin's Codex configuration directory. Only variable names are reported; whether the running Codex loaded them is unconfirmed.",
+  "本地代理可用性": "Local proxy availability",
+  "系统代理": "System proxy",
+  "TUN 情况": "TUN interfaces",
+  "未确认": "Unconfirmed",
+  "检查网络": "Check network",
+  "正在检查…": "Checking…",
+  "检测到显式代理变量": "Explicit proxy variables detected",
+  "未检测到显式代理（不代表直连）": "No explicit proxy detected (does not prove a direct connection)",
+  "已读取 {0} 个 Codex 相关进程的启动环境；{1} 个无法确认。应用内部覆盖设置未确认。": "Inspected launch environments of {0} Codex-related processes; {1} could not be inspected. In-app overrides are unconfirmed.",
+  "配置了 NO_PROXY 例外；不展示例外地址。": "NO_PROXY exclusions are configured; exclusion addresses are not displayed.",
+  "未确认：未发现配置中的本地代理端口": "Unconfirmed: no configured loopback proxy port found",
+  "TCP 可连接（仅本地端口）": "TCP reachable (local port only)",
+  "TCP 连接失败": "TCP connection failed",
+  "检测到系统代理配置": "System proxy configuration detected",
+  "未检测到系统代理配置": "No system proxy configuration detected",
+  "自动代理 / PAC 已配置；未执行 PAC": "Automatic proxy / PAC configured; PAC was not executed",
+  "未检测到自动代理 / PAC 配置": "No automatic proxy / PAC configuration detected",
+  "检测到 TUN 接口；实际路由未确认": "TUN interfaces detected; actual routing is unconfirmed",
+  "未检测到 TUN 接口（不代表没有 VPN）": "No TUN interface detected (does not prove VPN is absent)",
+  "检查时间：{0}": "Checked at: {0}",
+  "检查失败，结果未确认。可重试；不会修改网络设置。": "Inspection failed; results are unconfirmed. You can retry; network settings are unchanged.",
+  "日志只读 · 最近 24 小时": "Read-only logs · Last 24 hours",
   "大请求阈值": "Large request threshold",
   "启用系统通知": "Enable system notifications",
   "页面内告警": "In-page alerts",
@@ -281,6 +365,26 @@ $('pageAlerts').hidden=!sidebar;
 let initialized=false,lastId=0,latest=null,group='chat',refreshing=false;
 let expandedThread = null;
 let alertsOnly = false;
+let networkData = null, networkBusy = false, networkFailed = false;
+let proxyBusy = false, proxyMessage = null, externalMessage = null;
+const proxyReasons = {
+  platform_unsupported: '仅支持 macOS。',
+  activity_unconfirmed: 'Codex 仍在运行，请完成任务并退出后启动。',
+  app_unconfirmed: '无法唯一确认 Codex 应用，禁止启动。',
+  inspection_failed: '启动条件未确认，暂不可用。',
+  launch_pending: '正在启动，请稍候。',
+  dotenv_unconfirmed: '已有 .env 配置，暂不支持临时启动。',
+  no_proxy_conflict: 'NO_PROXY 排除了 Codex 服务，暂不可用。',
+  proxy_unconfirmed: '未确认本地 HTTP/mixed 代理，暂不可用。',
+  app_stopped: '可临时代理启动，仅本次生效，不修改配置。',
+  proxy_changed: '配置已变化，请刷新后重试。',
+  proxy_failed: 'HTTP 代理隧道验证失败，未启动 Codex。',
+  launch_failed: '启动失败，请检查应用状态。',
+  launch_requested: '已发起临时代理启动，连接结果请查看会话记录。',
+  launch_unconfirmed: '启动结果未确认，请先检查 Codex，勿重复启动。',
+  external_opened: '已在浏览器打开；完成任务并退出 Codex 后可操作。',
+  external_failed: '无法打开外部浏览器；未执行启动操作。',
+};
 const recentWindow = 5 * 60;
 const date=t=>new Date(t*1000).toLocaleString(locale,{hour12:false,month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});const mib=n=>(n/1048576).toFixed(2)+' MiB';
 function timeAgo(time, now) {
@@ -300,6 +404,124 @@ function byteSize(bytes) {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1048576) return (bytes / 1024).toFixed(2) + ' KiB';
   return mib(bytes);
+}
+
+function proxyRouteStatus(network) {
+  return {proxied: '代理已生效，无需操作。', direct: '代理未生效，建议开启临时代理。'}[network?.route?.status] || '待确认';
+}
+
+function renderTemporaryProxy() {
+  const plan = networkData?.temporary_proxy;
+  $('proxyReadiness').textContent = t(proxyRouteStatus(networkData));
+  $('proxyActionResult').hidden = !proxyMessage;
+  $('proxyActionResult').textContent = proxyMessage ? t(proxyReasons[proxyMessage] || proxyReasons.inspection_failed) : '';
+  $('proxyCondition').textContent = t(proxyReasons[plan?.reason] || proxyReasons.inspection_failed);
+  $('startTemporaryProxy').disabled = sidebar || networkBusy || proxyBusy || networkData?.route?.status === 'proxied' || !plan?.ready || !plan?.action_token;
+  $('startTemporaryProxy').textContent = t(proxyBusy ? '正在验证并启动…' : '使用临时代理启动 Codex');
+  $('openTemporaryProxyPage').hidden = !sidebar;
+  $('openTemporaryProxyPage').disabled = proxyBusy;
+  $('externalProxyResult').textContent = externalMessage ? t(proxyReasons[externalMessage]) : '';
+}
+
+async function startTemporaryProxy() {
+  const plan = networkData?.temporary_proxy;
+  if (sidebar || proxyBusy || networkBusy || networkData?.route?.status === 'proxied' || !plan?.ready || !plan?.action_token) return;
+  proxyBusy = true;
+  proxyMessage = null;
+  renderNetwork();
+  try {
+    const response = await fetch('/api/temporary-proxy', {
+      method: 'POST', headers: {'Content-Type': 'application/json', 'X-Codex-Monitor-Action': plan.action_token},
+      body: JSON.stringify({proxy: plan.proxy}), cache: 'no-store',
+    });
+    if (response.status === 403) {
+      networkData.temporary_proxy = {ready: false, reason: 'proxy_changed'};
+      proxyMessage = 'proxy_changed';
+    } else {
+      const result = await response.json();
+      networkData.temporary_proxy = {...result, ready: false};
+      proxyMessage = response.status === 202 && result.reason === 'launch_requested' ? 'launch_requested'
+        : response.status === 409 ? result.reason : 'launch_unconfirmed';
+    }
+  } catch {
+    networkData.temporary_proxy = {ready: false, reason: 'launch_unconfirmed'};
+    proxyMessage = 'launch_unconfirmed';
+  } finally {
+    proxyBusy = false;
+    renderNetwork();
+  }
+}
+
+function renderNetwork() {
+  renderTemporaryProxy();
+  const unknown = t('未确认');
+  const set = (id, summary, detail) => {
+    const node = $(id);
+    node.textContent = summary;
+    if (detail) sub(node, detail);
+  };
+  $('checkNetwork').disabled = networkBusy || proxyBusy;
+  $('checkNetwork').textContent = t(networkBusy ? '正在检查…' : '检查网络');
+  $('networkChecked').textContent = networkBusy ? t('正在检查…')
+    : networkFailed ? t('检查失败，结果未确认。可重试；不会修改网络设置。')
+    : networkData ? t('检查时间：{0}', new Date(networkData.checked_at * 1000).toLocaleTimeString(locale, {hour12: false})) : '';
+  if (!networkData) {
+    for (const id of ['networkRoute', 'networkCodex', 'networkDotenv', 'networkLocal', 'networkSystem', 'networkTun']) $(id).textContent = unknown;
+    return;
+  }
+  const {codex, dotenv, local_proxies: proxies, system, tun, route} = networkData;
+  const observed = route ? route.proxied + route.direct + route.unconfirmed : 0;
+  set('networkRoute', t(proxyRouteStatus(networkData)), observed
+    ? t('已核对 {0} 条连接：代理 {1}，直连 {2}，待确认 {3}。', observed, route.proxied, route.direct, route.unconfirmed) : '');
+  const codexState = codex.status === 'configured' ? t('检测到显式代理变量')
+    : codex.status === 'not_detected' ? t('未检测到显式代理（不代表直连）') : unknown;
+  set('networkCodex', codexState, [codex.variables.join(', '),
+    t('已读取 {0} 个 Codex 相关进程的启动环境；{1} 个无法确认。应用内部覆盖设置未确认。', codex.inspected, codex.unavailable),
+    codex.no_proxy ? t('配置了 NO_PROXY 例外；不展示例外地址。') : '',
+  ].filter(Boolean).join(' '));
+  set('networkDotenv', dotenv.status === 'present'
+    ? t(dotenv.variables.length ? '发现候选代理变量行（未验证语法）' : '文件中未发现代理变量赋值')
+    : dotenv.status === 'not_detected' ? t('未找到 .env 文件') : unknown,
+    [dotenv.variables.join(', '), t('检查插件使用的 Codex 配置目录；只记录变量名，是否被当前 Codex 加载未确认。')].filter(Boolean).join(' '));
+  $('networkLocal').replaceChildren();
+  if (!proxies.length) $('networkLocal').textContent = t('未确认：未发现配置中的本地代理端口');
+  for (const proxy of proxies) {
+    const line = document.createElement('div');
+    const state = proxy.status === 'reachable' ? t('TCP 可连接（仅本地端口）')
+      : proxy.status === 'unreachable' ? t('TCP 连接失败') : unknown;
+    line.textContent = proxy.address + ' · ' + state;
+    $('networkLocal').append(line);
+  }
+  set('networkSystem', system.status === 'configured' ? t('检测到系统代理配置')
+    : system.status === 'not_detected' ? t('未检测到系统代理配置') : unknown,
+    system.status === 'unconfirmed' ? '' : [system.manual.join(', '),
+      t(system.automatic ? '自动代理 / PAC 已配置；未执行 PAC' : '未检测到自动代理 / PAC 配置'),
+    ].filter(Boolean).join(' · '));
+  set('networkTun', tun.status === 'detected' ? t('检测到 TUN 接口；实际路由未确认')
+    : tun.status === 'not_detected' ? t('未检测到 TUN 接口（不代表没有 VPN）') : unknown,
+    tun.interfaces.join(', '));
+}
+
+async function checkNetwork() {
+  if (networkBusy || proxyBusy) return;
+  networkBusy = true;
+  networkFailed = false;
+  proxyMessage = null;
+  renderNetwork();
+  try {
+    if (sidebar) networkData = await window.readLocalMonitorNetwork();
+    else {
+      const response = await fetch('/api/network', {cache: 'no-store'});
+      if (!response.ok) throw Error('Network inspection failed');
+      networkData = await response.json();
+    }
+  } catch {
+    networkFailed = true;
+    networkData = null;
+  } finally {
+    networkBusy = false;
+    renderNetwork();
+  }
 }
 
 function bindChatLink(link, threadId, error, onOpened) {
@@ -589,6 +811,22 @@ function selectGroup(value) {
 $('filterAlerts').onclick = () => { alertsOnly = !alertsOnly; if (latest) render(latest); };
 $('filterChats').onclick = () => selectGroup('chat');
 $('filterOther').onclick = () => selectGroup('other');
+$('checkNetwork').onclick = checkNetwork;
+$('startTemporaryProxy').onclick = startTemporaryProxy;
+$('openTemporaryProxyPage').onclick = async () => {
+  if (proxyBusy) return;
+  proxyBusy = true;
+  renderNetwork();
+  try {
+    await window.openTemporaryProxyPage();
+    externalMessage = 'external_opened';
+  } catch {
+    externalMessage = 'external_failed';
+  } finally {
+    proxyBusy = false;
+    renderNetwork();
+  }
+};
 $('notify').onclick = async () => {
   if (!notificationsSupported) notificationLabel = '浏览器不支持通知';
   else {
@@ -606,9 +844,15 @@ language.onchange = () => {
   $('notify').textContent = t(notificationLabel);
   if (latest) render(latest);
   renderReadState();
+  renderNetwork();
 };
 translateLabels();
+renderTemporaryProxy();
 $('notify').textContent = t(notificationLabel);
 refresh();
+checkNetwork();
+window.addEventListener('focus', checkNetwork);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkNetwork(); });
 setInterval(refresh, 5000);
+setInterval(() => { if (!document.hidden) checkNetwork(); }, 15000);
 </script></body></html>

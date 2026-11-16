@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-import json, os, re, sqlite3, subprocess, sys, time, webbrowser
+import json, os, re, secrets, sqlite3, subprocess, sys, threading, time, webbrowser
 from contextlib import closing
 from http.client import HTTPConnection, HTTPException
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
+from network_diagnostics import collect_network as read_network_configuration
+from temporary_proxy import inspect_launch, launch as launch_temporary_proxy
 
 ROOT = Path(__file__).resolve().parent
 CODEX = Path.home() / '.codex'
@@ -18,6 +20,16 @@ MODEL_ID = re.compile(
     r'|([A-Za-z0-9][A-Za-z0-9._:/-]{0,127}))(?=[\s},]|$)'
 )
 MONITOR_ID = b'codex-request-monitor'
+PROXY_MONITOR_ID = b'codex-request-monitor temporary-proxy-v1'
+
+def collect_network():
+    return {**read_network_configuration(), 'temporary_proxy': inspect_launch()}
+
+class MonitorServer(ThreadingHTTPServer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.proxy_action_token = secrets.token_urlsafe(32)
+        self.proxy_action_lock = threading.Lock()
 
 def connect(path):
     db = sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True, timeout=2)
@@ -135,45 +147,103 @@ class Handler(BaseHTTPRequestHandler):
             data = (ROOT / 'index.html').read_bytes(); kind = 'text/html; charset=utf-8'
         elif path == '/health':
             data = MONITOR_ID; kind = 'text/plain; charset=utf-8'
+        elif path == '/health/temporary-proxy':
+            data = PROXY_MONITOR_ID; kind = 'text/plain; charset=utf-8'
         elif path == '/api/status':
             try:
                 data = json.dumps(collect(), ensure_ascii=False).encode(); kind = 'application/json; charset=utf-8'
             except (sqlite3.Error, OSError) as error:
                 self.send_response(503); self.send_header('Content-Type','application/json'); self.end_headers()
                 self.wfile.write(json.dumps({'error':type(error).__name__}).encode()); return
+        elif path == '/api/network':
+            try:
+                network = collect_network()
+                if network.get('temporary_proxy', {}).get('ready'):
+                    network['temporary_proxy'] = {**network['temporary_proxy'], 'action_token': self.server.proxy_action_token}
+                data = json.dumps(network, ensure_ascii=False).encode(); kind = 'application/json; charset=utf-8'
+            except (OSError, ValueError) as error:
+                self.send_response(503); self.send_header('Content-Type','application/json'); self.end_headers()
+                self.wfile.write(json.dumps({'error':type(error).__name__}).encode()); return
         else:
             self.send_error(404); return
         self.send_response(200); self.send_header('Content-Type',kind); self.send_header('Cache-Control','no-store')
-        self.send_header('X-Content-Type-Options','nosniff'); self.send_header('Content-Length',str(len(data))); self.end_headers(); self.wfile.write(data)
+        self.send_header('X-Content-Type-Options','nosniff'); self.send_header('X-Frame-Options','DENY')
+        self.send_header('Content-Security-Policy', "frame-ancestors 'none'")
+        self.send_header('Content-Length',str(len(data))); self.end_headers(); self.wfile.write(data)
+
+    def do_POST(self):
+        host = self.headers.get('Host', '')
+        if (host not in (f'127.0.0.1:{self.server.server_port}', f'localhost:{self.server.server_port}') or
+                self.headers.get('Origin') != 'http://' + host):
+            self.send_error(403); return
+        if self.path != '/api/temporary-proxy':
+            self.send_error(404); return
+        length = self.headers.get('Content-Length', '')
+        if (self.headers.get('Content-Type') != 'application/json' or
+                not length.isdigit() or not 2 <= int(length) <= 1024):
+            self.send_error(400); return
+        if not self.server.proxy_action_lock.acquire(blocking=False):
+            self.send_error(409); return
+        try:
+            if not secrets.compare_digest(self.headers.get('X-Codex-Monitor-Action', '').encode(), self.server.proxy_action_token.encode()):
+                self.send_error(403); return
+            try:
+                self.connection.settimeout(3)
+                body = json.loads(self.rfile.read(int(length)))
+            except (ValueError, UnicodeError, OSError):
+                self.send_error(400); return
+            if not isinstance(body, dict) or set(body) != {'proxy'} or not isinstance(body['proxy'], str):
+                self.send_error(400); return
+            self.server.proxy_action_token = secrets.token_urlsafe(32)
+            result = launch_temporary_proxy(body['proxy'])
+            data = json.dumps(result).encode()
+            self.send_response(202 if result['reason'] == 'launch_requested' else 409)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Cache-Control', 'no-store')
+            self.send_header('X-Content-Type-Options', 'nosniff')
+            self.send_header('Content-Length', str(len(data)))
+            self.end_headers(); self.wfile.write(data)
+        finally:
+            self.server.proxy_action_lock.release()
+
     def log_message(self, *args): pass
 
-def monitor_is_running(port):
+def open_temporary_proxy_page():
+    port = 49858
+    ensure_monitor(port, '/health/temporary-proxy', PROXY_MONITOR_ID)
+    subprocess.run(['/usr/bin/open', f'http://127.0.0.1:{port}/#temporaryProxy'],
+                   check=True, timeout=3, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+def monitor_is_running(port, health_path='/health', identity=MONITOR_ID):
     with closing(HTTPConnection('127.0.0.1', port, timeout=1)) as connection:
         try:
-            connection.request('GET', '/health')
+            connection.request('GET', health_path)
         except ConnectionRefusedError:
             return False
         response = connection.getresponse()
-        if response.status != 200 or response.read(len(MONITOR_ID) + 1) != MONITOR_ID:
+        if response.status != 200 or response.read(len(identity) + 1) != identity:
             raise RuntimeError(f'Port {port} is in use by another service')
         return True
 
-def ensure_monitor(port):
+def ensure_monitor(port, health_path='/health', identity=MONITOR_ID):
     if not 1 <= port <= 65535:
         raise ValueError('The monitor port must be between 1 and 65535')
-    if monitor_is_running(port):
+    if monitor_is_running(port, health_path, identity):
         return
 
+    environment = {'HOME': str(Path.home()), 'CODEX_MONITOR_PORT': str(port)}
+    if os.environ.get('CODEX_HOME'):
+        environment['CODEX_HOME'] = os.environ['CODEX_HOME']
     process = subprocess.Popen(
         [sys.executable, str(ROOT / 'monitor.py'), '--serve-only'],
-        env={'HOME': str(Path.home()), 'CODEX_MONITOR_PORT': str(port)},
+        env=environment,
         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         start_new_session=True,
     )
     deadline = time.monotonic() + 4
     try:
         while time.monotonic() < deadline:
-            if monitor_is_running(port):
+            if monitor_is_running(port, health_path, identity):
                 return
             time.sleep(0.05)
         raise RuntimeError(f'The monitor did not start on port {port}')
@@ -192,7 +262,7 @@ if __name__ == '__main__':
         print(f'http://127.0.0.1:{port}/')
         sys.exit(0)
 
-    server = ThreadingHTTPServer(('127.0.0.1', int(os.environ.get('CODEX_MONITOR_PORT', '0'))), Handler)
+    server = MonitorServer(('127.0.0.1', int(os.environ.get('CODEX_MONITOR_PORT', '0'))), Handler)
     url = f'http://127.0.0.1:{server.server_port}/'
     print('Codex Request Monitor: ' + url, flush=True)
     print('Keep this window open. Press Control-C to stop.', flush=True)

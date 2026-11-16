@@ -3,9 +3,11 @@
 import base64
 import json
 import sqlite3
+import subprocess
 import sys
+from http.client import HTTPException
 
-from monitor import ROOT, collect
+from monitor import ROOT, collect, collect_network, open_temporary_proxy_page
 
 
 TITLE = 'Codex Request Monitor'
@@ -33,10 +35,13 @@ TOOLS = [
         },
     },
     {'name': 'read_request_monitor', '_meta': {'ui': {'visibility': ['app']}}},
+    {'name': 'read_network_diagnostics', '_meta': {'ui': {'visibility': ['app']}}},
+    {'name': 'open_temporary_proxy_page', '_meta': {'ui': {'visibility': ['app']}}},
 ]
 for tool in TOOLS:
     tool['inputSchema'] = {'type': 'object', 'properties': {}, 'additionalProperties': False}
     tool['annotations'] = {'readOnlyHint': True, 'openWorldHint': False}
+TOOLS[-1]['annotations']['readOnlyHint'] = False
 
 
 def dashboard_resource():
@@ -82,6 +87,17 @@ def dispatch(method, params):
             try:
                 return {'content': [], '_meta': {'status': collect()}}
             except (OSError, sqlite3.Error):
+                return {'content': [], 'isError': True}
+        if params.get('name') == 'read_network_diagnostics':
+            try:
+                return {'content': [], '_meta': {'network': collect_network()}}
+            except (OSError, ValueError):
+                return {'content': [], 'isError': True}
+        if params.get('name') == 'open_temporary_proxy_page':
+            try:
+                open_temporary_proxy_page()
+                return {'content': [], '_meta': {'external_opened': True}}
+            except (OSError, RuntimeError, HTTPException, subprocess.SubprocessError):
                 return {'content': [], 'isError': True}
         raise ValueError('Unknown tool')
     raise NotImplementedError

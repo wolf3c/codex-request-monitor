@@ -4,6 +4,76 @@ from contextlib import closing
 from monitor import collect
 
 class MonitorTest(unittest.TestCase):
+ def test_incremental_evidence_matches_only_the_latest_generation(self):
+  with tempfile.TemporaryDirectory() as temp:
+   logs, state = Path(temp) / 'logs', Path(temp) / 'state'
+   now = int(time.time())
+   with closing(sqlite3.connect(state)) as db:
+    db.execute('CREATE TABLE threads(id TEXT, name TEXT, source TEXT, thread_source TEXT)')
+   turn = ' turn.id="00000000-0000-0000-0000-000000000001"'
+   other_turn = ' turn.id="00000000-0000-0000-0000-000000000002"'
+   generation = ' api.path="/responses" transport="responses_websocket" websocket.warmup=false'
+   full = ' non-incremental request reason="connection_closed"'
+   delta = ' codex.websocket.continuation mode="incremental" phase="generation"'
+   records = [
+    ('full', 'codex_core::client', generation + turn + full),
+    ('full', 'feedback_tags', generation + turn),
+    ('delta', 'codex_core::client', generation + turn + delta),
+    ('delta', 'feedback_tags', generation + turn),
+    ('older_same_turn', 'codex_core::client', generation + turn + full),
+    ('older_same_turn', 'feedback_tags', generation + turn),
+    ('older_same_turn', 'feedback_tags', generation + turn),
+    ('other_turn', 'codex_core::client', generation + turn + full),
+    ('other_turn', 'feedback_tags', generation + other_turn),
+    ('no_turn', 'codex_core::client', generation + full),
+    ('no_turn', 'feedback_tags', generation),
+    ('direct', 'codex_core::client', generation + turn + full),
+    ('direct', 'codex_core::client', generation.replace('warmup=false', 'warmup=true') + turn + delta),
+    ('http', 'codex_core::client', generation + turn + full),
+    ('http', 'feedback_tags', 'api.path="/responses" transport="responses_http"' + turn),
+   ]
+   with closing(sqlite3.connect(logs)) as db:
+    db.execute('CREATE TABLE logs(id INTEGER, ts INTEGER, ts_nanos INTEGER, thread_id TEXT, target TEXT, feedback_log_body TEXT)')
+    db.executemany('INSERT INTO logs VALUES (?, ?, ?, ?, ?, ?)', [
+     (i, now, i, thread, target, body)
+     for i, (thread, target, body) in enumerate(records, 1)
+    ])
+    db.commit()
+   states = {row['id']: row.get('latest_request_incremental') for row in collect(logs, state, now)['threads']}
+   self.assertEqual(states, {
+    'full': False, 'delta': True, 'older_same_turn': None, 'other_turn': None,
+    'no_turn': None, 'direct': False, 'http': None,
+   })
+
+ def test_latest_request_model_excludes_warmups_and_older_requests(self):
+  with tempfile.TemporaryDirectory() as temp:
+   logs, state = Path(temp) / 'logs', Path(temp) / 'state'
+   now = int(time.time())
+   with closing(sqlite3.connect(state)) as db:
+    db.execute('CREATE TABLE threads(id TEXT, name TEXT, source TEXT, thread_source TEXT)')
+   http = 'api.path="/responses" transport="responses_http"'
+   websocket = 'api.path="/responses" transport="responses_websocket"'
+   records = [
+    ('switch', http + ' model="gpt-6.1-sol"'),
+    ('switch', websocket + ' websocket.warmup=false model=gpt-6-luna'),
+    ('switch', websocket + ' websocket.warmup=true model=gpt-6.1-sol'),
+    ('missing', http + ' model="gpt-6.1-sol"'),
+    ('missing', http),
+    ('quoted', http + ' model="gpt-6.1-sol"'),
+    ('ambiguous', http + ' model=gpt-6.1-sol model=gpt-6-luna'),
+   ]
+   with closing(sqlite3.connect(logs)) as db:
+    db.execute('CREATE TABLE logs(id INTEGER, ts INTEGER, ts_nanos INTEGER, thread_id TEXT, target TEXT, feedback_log_body TEXT)')
+    db.executemany('INSERT INTO logs VALUES (?, ?, ?, ?, ?, ?)', [
+     (i, now, i, thread, 'feedback_tags', body)
+     for i, (thread, body) in enumerate(records, 1)
+    ])
+    db.commit()
+   models = {row['id']: row['latest_request_model'] for row in collect(logs, state, now)['threads']}
+   self.assertEqual(models, {
+    'switch': 'gpt-6-luna', 'missing': None, 'quoted': 'gpt-6.1-sol', 'ambiguous': None,
+   })
+
  def test_known_events_and_separate_times(self):
   with tempfile.TemporaryDirectory() as t:
    p=Path(t); logs=p/'logs'; state=p/'state'; now=int(time.time())

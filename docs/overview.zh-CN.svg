@@ -4,7 +4,7 @@
 <g font-family="system-ui, PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif">
 <rect x="32" y="27" width="28" height="28" rx="7" fill="#e0ede6"/>
 <path d="M37 41h4l3-6 4 12 3-6h4" fill="none" stroke="#24644e" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<text x="70" y="48" font-size="18" font-weight="650" fill="#365a4d">Codex Request Monitor</text>
+<text x="70" y="48" font-size="18" font-weight="650" fill="#365a4d">Codex 会话连接监控</text>
 <rect x="753" y="25" width="175" height="32" rx="16" fill="#e0ede6"/>
 <circle cx="773" cy="41" r="4" fill="#277858"/>
 <text x="785" y="46" font-size="14" font-weight="650" fill="#265c49">本机只读</text>
@@ -41,6 +41,6 @@
 <text x="48" y="415" font-size="15" font-weight="500" fill="#192230">整理发布说明</text>
 <text x="328" y="415" font-size="15" font-weight="500" fill="#192230">WebSocket</text>
 <text x="484" y="415" font-size="15" font-weight="500" fill="#192230">—</text>
-<text x="676" y="415" font-size="15" font-weight="500" fill="#192230">增量状态未知</text>
+<text x="676" y="415" font-size="15" font-weight="500" fill="#192230">—</text>
 <text x="33" y="449" font-size="14" font-weight="400" fill="#55504a">— 表示大小缺少记录。所有监控数据留在本机。</text>
 </g></svg>

@@ -48,6 +48,7 @@ th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-alig
 th { background: var(--band); font-weight: 700; }
 tr:last-child td { border-bottom: 0; }
 .name { font-weight: 600; width: 27%; max-width: 310px; overflow-wrap: anywhere; }
+.request-model { overflow-wrap: anywhere; }
 .session-row { cursor: pointer; }
 .session-row:hover, .session-row:focus-within { background: #f2ebe1; }
 .session-toggle { text-align: left; padding: 0; min-height: 0; border: 0; background: transparent; }
@@ -115,8 +116,8 @@ tr:last-child td { border-bottom: 0; }
   </div>
   <div class="tablewrap">
     <table>
-      <thead><tr><th data-i18n>会话</th><th data-i18n>最近观察</th><th data-i18n>传输</th><th data-i18n>最近请求体</th><th data-i18n>大小状态</th></tr></thead>
-      <tbody id="rows"><tr><td colspan="5" class="empty" data-i18n>正在读取日志…</td></tr></tbody>
+      <thead><tr><th data-i18n>会话</th><th data-i18n>最近观察</th><th data-i18n>传输</th><th data-i18n>最近请求模型</th><th data-i18n>最近请求体</th><th data-i18n>大小状态</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="6" class="empty" data-i18n>正在读取日志…</td></tr></tbody>
     </table>
   </div>
   <p class="foot"><span class="live"><span class="dot" id="dot"></span><span id="live" data-i18n>正在连接</span></span> · <span data-i18n>每 5 秒更新 · 按最近观察时间排序</span><br>
@@ -157,6 +158,7 @@ const english = {
   "最近观察": "Last seen",
   "传输": "Transport",
   "最近请求体": "Latest request body",
+  "最近请求模型": "Latest requested model",
   "大小状态": "Size status",
   "正在读取日志…": "Loading logs…",
   "正在连接": "Connecting",
@@ -190,6 +192,8 @@ const english = {
   "等待新请求": "Waiting for a new request",
   "完整上下文（HTTP）": "Full context (HTTP)",
   "增量状态未知": "Incremental status unknown",
+  "增量": "Incremental",
+  "非增量": "Non-incremental",
   "最近非增量": "Recent non-incremental request",
   "内部线程 · ": "Internal thread · ",
   "来源未确认 · ": "Unconfirmed source · ",
@@ -291,7 +295,7 @@ function appendSessionDetail(row, data, thread) {
   const events = uploads.concat(data.nonincremental_events.filter(event => event.thread === threadId))
     .sort((a, b) => b.time - a.time || b.id - a.id).slice(0, 10);
   const detail = cell(row, '', 'session-detail');
-  detail.colSpan = 5;
+  detail.colSpan = 6;
   detail.id = 'detail-' + threadId;
 
   if (thread.group === 'chat' && thread.transport === 'HTTP') {
@@ -388,10 +392,13 @@ function renderSessions(entries, data, limit, wsAlertsByThread) {
     const waitingForRetry = x.retry && !x.retry.request;
     const transport = cell(tr, waitingForRetry ? t('等待新请求') : x.transport || t('未知'));
     if (!waitingForRetry) {
-      sub(transport, x.transport === 'HTTP' ? t('完整上下文（HTTP）') : t('增量状态未知'));
+      const state = x.latest_request_incremental;
+      sub(transport, x.transport === 'HTTP' ? t('完整上下文（HTTP）')
+        : state === true ? t('增量') : state === false ? t('非增量') : '-');
       if (x.transport_time && x.transport_time !== observed) sub(transport, date(x.transport_time));
     }
 
+    cell(tr, x.latest_request_model ?? '-', 'request-model');
     const requestSize = waitingForRetry ? null : x.latest_request_size;
     const oversized = requestSize && requestSize.compressed >= limit;
     const size = cell(tr, requestSize ? mib(requestSize.compressed) + t(' · 压缩后') : '-', oversized ? 'size-alert' : '');
@@ -412,7 +419,7 @@ function renderSessions(entries, data, limit, wsAlertsByThread) {
     }
     if (expandedThread === x.id) appendSessionDetail(rows.insertRow(), data, x);
   }
-  if (!entries.length) cell(rows.insertRow(), t('此分类最近 24 小时没有可识别的请求'), 'empty').colSpan = 5;
+  if (!entries.length) cell(rows.insertRow(), t('此分类最近 24 小时没有可识别的请求'), 'empty').colSpan = 6;
   focus?.focus({preventScroll: true});
 }
 function render(d) {

@@ -13,6 +13,10 @@ STATE_DB = CODEX / 'state_5.sqlite'
 SIZE = re.compile(r'pre_compression_bytes=(\d+) post_compression_bytes=(\d+)')
 REASON = re.compile(r'reason="([a-z_]+)"')
 TURN_ID = re.compile(r'\bturn\.id="([a-fA-F0-9-]{36})"')
+MODEL_ID = re.compile(
+    r'(?:^|[\s{,])model=(?:"([A-Za-z0-9][A-Za-z0-9._:/-]{0,127})"'
+    r'|([A-Za-z0-9][A-Za-z0-9._:/-]{0,127}))(?=[\s},]|$)'
+)
 MONITOR_ID = b'codex-request-monitor'
 
 def connect(path):
@@ -26,6 +30,7 @@ def collect(log_db=LOG_DB, state_db=STATE_DB, now=None):
         index = {id: (name, source, thread_source) for id, name, source, thread_source in db.execute('SELECT id, name, source, thread_source FROM threads')}
     threads, alerts, nonincremental_events = {}, [], []
     pending_http = {}
+    pending_incremental = {}
     retry_requests, retry_websockets, retry_archives = {}, {}, {}
     ws_alert_resets = set()
     with closing(connect(log_db)) as db:
@@ -56,7 +61,7 @@ def collect(log_db=LOG_DB, state_db=STATE_DB, now=None):
             incremental = (
                 target == 'codex_core::client' and transport == 'WebSocket' and
                 'codex.websocket.continuation' in body and 'mode="incremental"' in body and
-                'phase="generation"' in body
+                'phase="generation"' in body and 'websocket.warmup=true' not in body
             )
             if (request_observed and transport == 'HTTP') or incremental:
                 ws_alert_resets.add(thread_id)
@@ -75,6 +80,22 @@ def collect(log_db=LOG_DB, state_db=STATE_DB, now=None):
             is_chat = bool(entry) and not internal and (source in ('vscode', 'cli') or kind in ('user', 'automation', 'agent_created_thread', 'agent_forked_thread', 'chatgpt_handoff'))
             classification = 'chat' if is_chat else 'internal' if internal else 'unmatched' if not entry else 'unclassified'
             row = threads.setdefault(thread_id, {'id':thread_id,'title':name or ('未命名聊天' if is_chat else '来源未确认'),'title_missing': not name,'group':'chat' if is_chat else 'other','classification':classification,'transport':None,'transport_time':None,'size':None,'latest_request_size':None,'nonincremental':None})
+            if request_observed or incremental:
+                evidence = True if incremental else False if nonincremental else None
+                request_turn = TURN_ID.search(body)
+                if 'latest_request_incremental' not in row:
+                    row['latest_request_incremental'] = evidence
+                    if target == 'feedback_tags' and transport == 'WebSocket' and request_turn:
+                        pending_incremental[thread_id] = request_turn.group(1)
+                else:
+                    # An intervening request ends the match, even within the same turn.
+                    pending = pending_incremental.pop(thread_id, None)
+                    if pending and request_turn and request_turn.group(1) == pending and evidence is not None:
+                        row['latest_request_incremental'] = evidence
+            if (request_observed or incremental) and 'latest_request_model' not in row:
+                # Keep a missing model on the newest request instead of showing an older one.
+                models = {quoted or bare for quoted, bare in MODEL_ID.findall(body)}
+                row['latest_request_model'] = models.pop() if len(models) == 1 else None
             latest_transport = transport and row['transport'] is None
             if transport and row['transport'] is None:
                 row.update(transport=transport, transport_time=ts)

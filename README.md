@@ -39,14 +39,14 @@ Codex 会话连接监控按对话展示传输方式、请求体大小和已记�
 
 ## 安装与使用
 
-macOS 测试版，需要 Python 3.9+。插件在内置 `codex-cli 0.166.0-alpha.6` 的桌面版上开发。`v0.2.0-beta` 包含中英文面板、最近请求模型及基于日志证据的增量状态。面板默认跟随浏览器语言，可在右上角切换简体中文和英文。
+macOS 测试版，需要 Python 3.9+。插件在内置 `codex-cli 0.166.0-alpha.6` 的桌面版上开发。`v0.2.1-beta` 包含会话标题直接跳转、中英文面板、最近请求模型及基于日志证据的增量状态。面板默认跟随浏览器语言，可在右上角切换简体中文和英文。
 
 ### 1. 终端安装（推荐）
 
 需要 Codex 桌面版和支持 `codex plugin` 的 CLI。
 
 ```sh
-codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.2.0-beta
+codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.2.1-beta
 codex plugin add codex-request-monitor@codex-request-monitor-marketplace
 ```
 
@@ -59,7 +59,7 @@ codex plugin add codex-request-monitor@codex-request-monitor-marketplace
 
 先检查 Python 3.9+ 和 codex plugin 命令是否可用，再执行：
 
-codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.2.0-beta
+codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.2.1-beta
 codex plugin add codex-request-monitor@codex-request-monitor-marketplace
 
 安装后验证插件是否已安装，并告诉我如何从左侧「⋯」打开。
@@ -69,7 +69,7 @@ codex plugin add codex-request-monitor@codex-request-monitor-marketplace
 ### 3. 桌面安装（无需终端）
 
 1. 打开 **Plugins → Add plugin marketplace**。
-2. **Source** 填 `wolf3c/codex-request-monitor`，**Git ref** 填 `v0.2.0-beta`。
+2. **Source** 填 `wolf3c/codex-request-monitor`，**Git ref** 填 `v0.2.1-beta`。
 3. 点击 **Add marketplace**，找到 **Codex Request Monitor**，点击 **Install**。
 
 ### 打开已安装的面板

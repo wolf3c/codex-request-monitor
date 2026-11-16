@@ -39,14 +39,14 @@ Codex Session Connection Monitor shows transport, request body sizes, and record
 
 ## Install and use
 
-The macOS beta requires Python 3.9 or later. `v0.2.0-beta` includes the bilingual dashboard, latest requested model, and evidence-based incremental state. The dashboard opens in Chinese for Chinese locales and in English otherwise. Use the language selector to switch at any time. Session titles stay in their original language.
+The macOS beta requires Python 3.9 or later. `v0.2.1-beta` includes direct chat navigation from session titles, the bilingual dashboard, latest requested model, and evidence-based incremental state. The dashboard opens in Chinese for Chinese locales and in English otherwise. Use the language selector to switch at any time. Session titles stay in their original language.
 
 ### 1. Terminal installation (recommended)
 
 Requires Codex desktop and a Codex CLI with the `plugin` command.
 
 ```sh
-codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.2.0-beta
+codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.2.1-beta
 codex plugin add codex-request-monitor@codex-request-monitor-marketplace
 ```
 
@@ -59,7 +59,7 @@ Please install the Codex Request Monitor plugin on this computer.
 
 First check that Python 3.9+ and the codex plugin command are available, then run:
 
-codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.2.0-beta
+codex plugin marketplace add wolf3c/codex-request-monitor --ref v0.2.1-beta
 codex plugin add codex-request-monitor@codex-request-monitor-marketplace
 
 After installation, verify that the plugin is installed and explain how to open it from the left sidebar's ⋯ menu.
@@ -69,7 +69,7 @@ If additional permissions are needed, explain why. Ask for my consent before res
 ### 3. Install from the desktop app
 
 1. Open **Plugins → Add plugin marketplace**.
-2. Set **Source** to `wolf3c/codex-request-monitor` and **Git ref** to `v0.2.0-beta`.
+2. Set **Source** to `wolf3c/codex-request-monitor` and **Git ref** to `v0.2.1-beta`.
 3. Click **Add marketplace**, find the monitor, and click **Install**. The plugin is listed as **Codex Request Monitor**.
 
 ### Open the installed dashboard

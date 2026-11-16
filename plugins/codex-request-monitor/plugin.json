@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "codex-request-monitor",
-  "version": "0.2.0-beta",
+  "version": "0.2.1-beta",
   "description": "Open a local, read-only request monitor from the Codex sidebar.",
   "extensions": {
     "com.openai": {
